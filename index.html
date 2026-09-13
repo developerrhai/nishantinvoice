@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BL Group Invoice Generator</title>
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- html2pdf for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Modern Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --surface-color: #1e293b;
+            --primary-color: #6366f1;
+            --primary-hover: #4f46e5;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --danger: #ef4444;
+            
+            /* Print/Preview colors */
+            --print-border: #000000;
+            --print-red: #d32f2f;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1100px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Editor Styles */
+        .card {
+            background: var(--surface-color);
+            border-radius: 12px;
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-row > * {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-main);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        input:focus, textarea:focus {
+            border-color: var(--primary-color);
+        }
+        
+        .section-title {
+            margin: 1.5rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            color: #818cf8;
+        }
+
+        .item-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 0.5rem;
+            align-items: start;
+            margin-bottom: 0.5rem;
+            background: #0f172a;
+            padding: 0.75rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px dashed var(--border-color);
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .btn-icon {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-icon:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Invoice Preview Styles */
+        .preview-pane-container {
+            background: #fff;
+            border-radius: 8px;
+            overflow: auto;
+            padding: 1rem;
+        }
+
+        .invoice-preview {
+            background: white;
+            color: black;
+            width: 210mm; /* A4 width */
+            min-height: 297mm; /* A4 height */
+            padding: 15mm;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif; /* Standard readable font for print */
+            font-size: 12px;
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .invoice-header-img {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .invoice-header-img h1 {
+            color: #b71c1c; /* Deep red for BL Group */
+            font-size: 48px;
+            margin: 0;
+            font-weight: 900;
+            letter-spacing: 2px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .invoice-header-img h1 .arrow-up {
+            font-size: 40px;
+            color: black;
+            margin-left: 10px;
+        }
+
+        .invoice-header-img .sub-title {
+            color: #d32f2f;
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 5px;
+        }
+        
+        .invoice-header-img .dealers {
+            color: #283593;
+            font-weight: bold;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .invoice-header-img .gstin {
+            color: #1a237e;
+            font-weight: bold;
+            font-size: 14px;
+            margin: 10px 0;
+            border-top: 1px solid #d32f2f;
+            border-bottom: 1px solid #d32f2f;
+            padding: 5px 0;
+        }
+
+        .invoice-header-img .address {
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        /* Table Structure */
+        .inv-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 2px solid var(--print-border);
+            margin-bottom: 10px;
+        }
+
+        .inv-table th, .inv-table td {
+            border: 1px solid var(--print-border);
+            padding: 5px 8px;
+            vertical-align: top;
+        }
+        
+        .inv-table td {
+            height: 25px; /* Minimum height for rows */
+        }
+
+        /* Top Details Section */
+        .top-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+        
+        .top-details .bill-info {
+            display: flex;
+            border-bottom: 1px solid var(--print-border);
+        }
+        
+        .top-details .bill-info div {
+            padding: 5px 8px;
+            font-weight: bold;
+        }
+        
+        .client-info td {
+            padding: 5px 8px;
+        }
+
+        .red-text {
+            color: var(--print-red);
+            font-weight: bold;
+        }
+
+        .payment-term {
+            text-align: center;
+            font-weight: bold;
+            color: var(--print-red);
+            text-transform: uppercase;
+        }
+
+        /* Items Section */
+        .items-header th {
+            text-align: center;
+            font-weight: bold;
+            background-color: #fff;
+        }
+
+        .dept-row {
+            text-align: center;
+            font-weight: bold;
+            border-bottom: 1px solid var(--print-border);
+        }
+
+        .items-body td {
+            border-bottom: none;
+            border-top: none;
+        }
+        
+        .items-body tr:last-child td {
+            border-bottom: 1px solid var(--print-border);
+        }
+        
+        /* Fixed height for items body to push footer down */
+        .items-container {
+            min-height: 350px;
+        }
+
+        .amount-col {
+            text-align: right;
+        }
+        
+        .center-col {
+            text-align: center;
+        }
+
+        /* Totals Section */
+        .totals-section td {
+            font-weight: bold;
+        }
+        
+        .totals-section .calc-label {
+            width: 150px;
+        }
+
+        .igst-label {
+            color: #673ab7;
+            text-decoration: underline;
+        }
+
+        /* Footer Section */
+        .footer-amount {
+            display: flex;
+            border-top: 2px solid var(--print-border);
+            border-bottom: 2px solid var(--print-border);
+        }
+        
+        .footer-amount .label {
+            font-weight: bold;
+            padding: 5px 8px;
+            border-right: 1px solid var(--print-border);
+        }
+        
+        .footer-amount .words {
+            padding: 5px 8px;
+            flex-grow: 1;
+            font-weight: bold;
+            text-transform: capitalize;
+        }
+        
+        .footer-amount .total-val {
+            padding: 5px 8px;
+            font-weight: bold;
+            text-align: right;
+            border-left: 1px solid var(--print-border);
+            min-width: 120px;
+        }
+
+        .terms-conditions {
+            margin-top: 15px;
+            font-size: 11px;
+            line-height: 1.5;
+            position: relative;
+        }
+        
+        .sign-area {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        /* Loader */
+        .loader {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 3px solid #fff;
+            width: 20px;
+            height: 20px;
+            -webkit-animation: spin 1s linear infinite; /* Safari */
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Number to Words Converter (Indian Numbering System)
+        function numberToWords(num) {
+            const a = ['','one ','two ','three ','four ', 'five ','six ','seven ','eight ','nine ','ten ','eleven ','twelve ','thirteen ','fourteen ','fifteen ','sixteen ','seventeen ','eighteen ','nineteen '];
+            const b = ['', '', 'twenty','thirty','forty','fifty', 'sixty','seventy','eighty','ninety'];
+
+            if ((num = num.toString()).length > 9) return 'overflow';
+            let n = ('000000000' + num).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+            if (!n) return;
+            let str = '';
+            str += (n[1] != 0) ? (a[Number(n[1])] || b[n[1][0]] + ' ' + a[n[1][1]]) + 'crore ' : '';
+            str += (n[2] != 0) ? (a[Number(n[2])] || b[n[2][0]] + ' ' + a[n[2][1]]) + 'lakh ' : '';
+            str += (n[3] != 0) ? (a[Number(n[3])] || b[n[3][0]] + ' ' + a[n[3][1]]) + 'thousand ' : '';
+            str += (n[4] != 0) ? (a[Number(n[4])] || b[n[4][0]] + ' ' + a[n[4][1]]) + 'hundred ' : '';
+            str += (n[5] != 0) ? ((str != '') ? 'and ' : '') + (a[Number(n[5])] || b[n[5][0]] + ' ' + a[n[5][1]]) : '';
+            return str.trim();
+        }
+
+        function App() {
+            const today = new Date();
+            const formattedDate = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}-${today.getFullYear()}`;
+            
+            const [data, setData] = useState({
+                billNo: 'BL/F/053/26-27',
+                date: formattedDate,
+                clientName: 'KEC ASIAN CABLES LIMITED',
+                clientAddress: 'PLOT NO 803, SAMALAYA - SAVALY ROAD, VILLAGE GODAMPURA, TALUKA-SAVLI, VADODARA 391520 GUJARAT',
+                clientGst: '24AALCK3195Q1ZS',
+                sacCode: '997313 Leasing or rental services concerning Constructions Machinery and Equipment with or without operator.',
+                paymentTerm: '10 DAYS',
+                department: 'STORE',
+                igstRate: 18,
+                items: [
+                    { 
+                        id: 1, 
+                        particulars: 'SUPPLY OF 5 TON CAPACITY DIESEL FORKLIFT NO GJ - 15 - BB 9683 ON HIRING BASIS\n\nTHE WORK DONE FROM 01/08/2026 TO 31/08/2026 AS PER LOG SHEET NO. 705 & 706', 
+                        workingDays: 'fix', 
+                        hours: '12 HRS', 
+                        rate: 57500 
+                    }
+                ]
+            });
+
+            const [isGenerating, setIsGenerating] = useState(false);
+            const previewRef = useRef(null);
+
+            const updateField = (field, value) => {
+                setData(prev => ({ ...prev, [field]: value }));
+            };
+
+            const updateItem = (id, field, value) => {
+                setData(prev => ({
+                    ...prev,
+                    items: prev.items.map(item => item.id === id ? { ...item, [field]: value } : item)
+                }));
+            };
+
+            const addItem = () => {
+                setData(prev => ({
+                    ...prev,
+                    items: [...prev.items, { 
+                        id: Date.now(), 
+                        particulars: '', 
+                        workingDays: 'fix', 
+                        hours: '', 
+                        rate: 0 
+                    }]
+                }));
+            };
+
+            const removeItem = (id) => {
+                setData(prev => ({
+                    ...prev,
+                    items: prev.items.filter(item => item.id !== id)
+                }));
+            };
+
+            // Calculations
+            const subTotal = data.items.reduce((sum, item) => sum + Number(item.rate || 0), 0);
+            const igstAmount = (subTotal * (Number(data.igstRate) / 100));
+            const grandTotal = Math.round(subTotal + igstAmount);
+            
+            // Format number to words
+            const amountInWords = numberToWords(grandTotal);
+
+            const handleDownloadPdf = async () => {
+                if (!previewRef.current) return;
+                setIsGenerating(true);
+                
+                try {
+                    const element = previewRef.current;
+                    const opt = {
+                        margin: 0,
+                        filename: `Invoice_${data.billNo.replace(/\//g, '_')}.pdf`,
+                        image: { type: 'jpeg', quality: 1 },
+                        html2canvas: { scale: 2, useCORS: true },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    };
+                    
+                    await html2pdf().set(opt).from(element).save();
+                } catch (error) {
+                    console.error("PDF Generation Error:", error);
+                    alert("Failed to generate PDF. See console for details.");
+                } finally {
+                    setIsGenerating(false);
+                }
+            };
+
+            return (
+                <div className="app-container">
+                    <header className="header">
+                        <h1>BL Group Invoice Generator</h1>
+                    </header>
+                    
+                    <main className="main-content">
+                        {/* LEFT PANEL: Editor */}
+                        <div className="card">
+                            <h2 className="card-title">Invoice Details</h2>
+                            
+                            <div className="form-row">
+                                <div>
+                                    <label>Bill No.</label>
+                                    <input value={data.billNo} onChange={e => updateField('billNo', e.target.value)} />
+                                </div>
+                                <div>
+                                    <label>Date</label>
+                                    <input value={data.date} onChange={e => updateField('date', e.target.value)} />
+                                </div>
+                            </div>
+
+                            <div className="section-title">Client Details</div>
+                            <div className="form-group">
+                                <label>M/s (Client Name)</label>
+                                <input value={data.clientName} onChange={e => updateField('clientName', e.target.value)} />
+                            </div>
+                            <div className="form-group" style={{ marginTop: '1rem' }}>
+                                <label>Client Address</label>
+                                <textarea value={data.clientAddress} onChange={e => updateField('clientAddress', e.target.value)} />
+                            </div>
+                            <div className="form-row" style={{ marginTop: '1rem' }}>
+                                <div>
+                                    <label>Client GST No.</label>
+                                    <input value={data.clientGst} onChange={e => updateField('clientGst', e.target.value)} />
+                                </div>
+                                <div>
+                                    <label>Payment Term</label>
+                                    <input value={data.paymentTerm} onChange={e => updateField('paymentTerm', e.target.value)} />
+                                </div>
+                            </div>
+                            
+                            <div className="form-group" style={{ marginTop: '1rem' }}>
+                                <label>GST SAC CODE</label>
+                                <input value={data.sacCode} onChange={e => updateField('sacCode', e.target.value)} />
+                            </div>
+
+                            <div className="section-title">Invoice Items</div>
+                            <div className="form-group">
+                                <label>Department / Section Header</label>
+                                <input value={data.department} onChange={e => updateField('department', e.target.value)} />
+                            </div>
+
+                            <div style={{ marginTop: '1rem' }}>
+                                <label>Line Items</label>
+                                {data.items.map(item => (
+                                    <div className="item-row" key={item.id}>
+                                        <textarea 
+                                            placeholder="Particulars (Description)" 
+                                            value={item.particulars} 
+                                            onChange={e => updateItem(item.id, 'particulars', e.target.value)} 
+                                        />
+                                        <div>
+                                            <input placeholder="Days" value={item.workingDays} onChange={e => updateItem(item.id, 'workingDays', e.target.value)} />
+                                        </div>
+                                        <div>
+                                            <input placeholder="Hrs" value={item.hours} onChange={e => updateItem(item.id, 'hours', e.target.value)} />
+                                        </div>
+                                        <div>
+                                            <input type="number" placeholder="Rate" value={item.rate} onChange={e => updateItem(item.id, 'rate', e.target.value)} />
+                                        </div>
+                                        <button className="btn-icon" onClick={() => removeItem(item.id)}>×</button>
+                                    </div>
+                                ))}
+                                <button className="btn btn-outline" onClick={addItem}>+ Add Line Item</button>
+                            </div>
+                            
+                            <div className="section-title">Tax Options</div>
+                            <div className="form-row">
+                                <div>
+                                    <label>IGST Rate (%)</label>
+                                    <input type="number" value={data.igstRate} onChange={e => updateField('igstRate', e.target.value)} />
+                                </div>
+                                <div>
+                                    <label>Subtotal (Auto)</label>
+                                    <input value={subTotal} disabled style={{ backgroundColor: '#1e293b', cursor: 'not-allowed' }} />
+                                </div>
+                            </div>
+
+                            <button 
+                                className="btn" 
+                                style={{ marginTop: '2rem' }} 
+                                onClick={handleDownloadPdf}
+                                disabled={isGenerating}
+                            >
+                                {isGenerating ? <div className="loader"></div> : 'Download PDF Invoice'}
+                            </button>
+                        </div>
+
+                        {/* RIGHT PANEL: Live Preview */}
+                        <div className="preview-pane-container">
+                            <div className="invoice-preview" ref={previewRef}>
+                                {/* Header / Logo Section */}
+                                <div className="invoice-header-img" style={{ marginBottom: '10px' }}>
+                                    <img src="./logo.jpeg" alt="BL Group Letterhead" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                                </div>
+
+                                {/* Main Table */}
+                                <table className="inv-table">
+                                    <tbody>
+                                        {/* Row 1: Bill No and Date */}
+                                        <tr>
+                                            <td colSpan="3" style={{ padding: 0 }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                    <div style={{ padding: '5px 8px', width: '50%', borderRight: '1px solid #000', display: 'flex' }}>
+                                                        <b style={{ width: '80px' }}>BILL NO :</b>
+                                                        <b>{data.billNo}</b>
+                                                    </div>
+                                                    <div style={{ padding: '5px 8px', width: '50%', display: 'flex' }}>
+                                                        <b style={{ width: '80px' }}>DATE :</b>
+                                                        <b>{data.date}</b>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        {/* Row 2: M/s */}
+                                        <tr>
+                                            <td colSpan="3" style={{ display: 'flex' }}>
+                                                <b style={{ width: '80px' }}>M/s :</b>
+                                                <b>{data.clientName}</b>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colSpan="3">{data.clientAddress}</td>
+                                        </tr>
+                                        <tr>
+                                            <td colSpan="3">
+                                                <b>{data.clientName} GST NO.- {data.clientGst}</b>
+                                            </td>
+                                        </tr>
+                                        
+                                        {/* SAC Code */}
+                                        <tr>
+                                            <td colSpan="3" className="red-text">
+                                                GST SAC CODE : {data.sacCode}
+                                            </td>
+                                        </tr>
+                                        
+                                        {/* Payment Terms */}
+                                        <tr>
+                                            <td colSpan="3" className="payment-term">
+                                                PAYMENT TERM : {data.paymentTerm}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                {/* Items Table */}
+                                <table className="inv-table items-table">
+                                    <thead className="items-header">
+                                        <tr>
+                                            <th style={{ width: '60%' }}>PARTICULAR</th>
+                                            <th>WORKING DAYS</th>
+                                            <th>HOURS</th>
+                                            <th>RATE PER WORKING DAYS</th>
+                                            <th>AMOUNT RS.</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="items-body">
+                                        {/* Department Row */}
+                                        <tr>
+                                            <td className="dept-row" colSpan="5">DEPT. {data.department}</td>
+                                        </tr>
+                                        
+                                        {/* Spacer */}
+                                        <tr><td colSpan="5" style={{height: '10px'}}></td></tr>
+                                        
+                                        {/* Line Items */}
+                                        {data.items.map((item, idx) => (
+                                            <tr key={item.id}>
+                                                <td style={{ whiteSpace: 'pre-wrap' }}>{item.particulars}</td>
+                                                <td className="center-col">{item.workingDays}</td>
+                                                <td className="center-col">{item.hours}</td>
+                                                <td className="amount-col">{item.rate ? Number(item.rate).toFixed(2) : ''}</td>
+                                                <td className="amount-col"><b>{item.rate ? Number(item.rate) : ''}</b></td>
+                                            </tr>
+                                        ))}
+                                        
+                                        {/* Empty space to push totals down */}
+                                        <tr>
+                                            <td style={{ height: '150px' }}></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                {/* Totals Table (Seamless with items) */}
+                                <table className="inv-table" style={{ marginTop: '-10px', borderTop: 'none' }}>
+                                    <tbody className="totals-section">
+                                        <tr>
+                                            <td className="calc-label" style={{ borderRight: 'none', borderBottom: 'none' }}>Total</td>
+                                            <td style={{ borderLeft: 'none', borderRight: 'none', borderBottom: 'none' }}></td>
+                                            <td style={{ borderLeft: 'none', borderRight: 'none', borderBottom: 'none' }}></td>
+                                            <td style={{ borderLeft: 'none', width: '20%' }}></td>
+                                            <td className="amount-col" style={{ width: '15%' }}><b>{subTotal}</b></td>
+                                        </tr>
+                                        <tr>
+                                            <td colSpan="4" style={{ border: '2px solid var(--print-border)', padding: '2px 5px', width: 'fit-content', borderRight: 'none', display: 'inline-block' }}><b>ADD:</b></td>
+                                            <td rowSpan="4" style={{ borderLeft: '1px solid var(--print-border)' }}></td>
+                                        </tr>
+                                        <tr>
+                                            <td colSpan="3" style={{ border: 'none', padding: '5px' }}>
+                                                <span className="igst-label">IGST @ {data.igstRate}%</span>
+                                            </td>
+                                            <td style={{ border: 'none' }}></td>
+                                            <td className="amount-col" style={{ borderLeft: '1px solid var(--print-border)' }}><b>{igstAmount}</b></td>
+                                        </tr>
+                                        <tr>
+                                            <td colSpan="3" style={{ border: 'none', padding: '15px 5px 5px' }}>
+                                                <b>BL GROUP GST NO. : 27ABDFB0222B1ZC</b><br/>
+                                                <b>PAN NO: ABDFB0222B</b>
+                                            </td>
+                                            <td style={{ border: 'none' }}></td>
+                                            <td style={{ borderLeft: '1px solid var(--print-border)', borderTop: 'none' }}></td>
+                                        </tr>
+                                        <tr>
+                                            <td colSpan="4" style={{ border: 'none', padding: '5px' }}>
+                                                Category - M & R and Supply of Tangible Goods For Use Service.
+                                            </td>
+                                            <td style={{ borderLeft: '1px solid var(--print-border)', borderTop: 'none' }}></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                {/* Rupees Footer */}
+                                <div className="footer-amount">
+                                    <div className="label">RUPEES:</div>
+                                    <div className="words">{amountInWords} rupees only</div>
+                                    <div className="total-val">{grandTotal}</div>
+                                </div>
+
+                                {/* Terms and Signature */}
+                                <div className="terms-conditions">
+                                    <b>E. & O. E.</b>
+                                    
+                                    <div style={{ marginTop: '10px' }}>
+                                        18% Interest will be charged if the Bill is not paid within 10 days after presentation<br/>
+                                        Sales Tax if any as per Maharashtra Sales Tax on the Transfer of the right to use any goods<br/>
+                                        for any purpose act 1985, service-tax (Central Govt.) shall be charged later, if applicable.<br/>
+                                        Subject to Nashik Jurisdiction.
+                                    </div>
+                                    
+                                    <div className="red-text" style={{ marginTop: '5px' }}>
+                                        encl : work sheet duly certified.
+                                    </div>
+                                    
+                                    <div className="sign-area">
+                                        <div style={{ marginBottom: '40px' }}>For BL GROUP</div>
+                                        <div>AUTH. SIGNATORY</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
