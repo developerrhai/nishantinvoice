@@ -523,7 +523,7 @@
                         await sleep(100); 
                         const opt = { margin: 0, filename: `temp.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
                         const pdfBlob = await html2pdf().set(opt).from(salaryHiddenPreviewRef.current).output('blob');
-                        zip.file(`Payslip_${parsedSalaries[i].empName.replace(/[^a-z0-9]/gi, '_')}.pdf`, pdfBlob);
+                        zip.file(`Payslip_${salaryMonth.replace(/ /g, '_')}_${parsedSalaries[i].empName.replace(/[^a-z0-9]/gi, '_')}.pdf`, pdfBlob);
                         setGenerationProgress(i + 1);
                     }
                     const zipBlob = await zip.generateAsync({ type: "blob" });
@@ -532,6 +532,21 @@
                     link.download = `Salary_Slips_${salaryMonth.replace(/ /g, '_')}.zip`;
                     link.click();
                 } catch (error) { console.error(error); alert("An error occurred generating salary slips."); } finally { setIsGenerating(false); setGenerationProgress(0); }
+            };
+
+            const handleDownloadSingleSalary = async (empData) => {
+                setIsGenerating(true);
+                try {
+                    setHiddenSalaryData(empData);
+                    await sleep(100); 
+                    const opt = { margin: 0, filename: `Payslip_${salaryMonth.replace(/ /g, '_')}_${empData.empName.replace(/[^a-z0-9]/gi, '_')}.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+                    await html2pdf().set(opt).from(salaryHiddenPreviewRef.current).save();
+                } catch (error) { 
+                    console.error(error); 
+                    alert("An error occurred generating salary slip."); 
+                } finally { 
+                    setIsGenerating(false); 
+                }
             };
 
 
@@ -659,6 +674,7 @@
                                                         <th>Earned Salary</th>
                                                         <th>Deductions</th>
                                                         <th>Salary in Hand</th>
+                                                        <th>Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -669,6 +685,15 @@
                                                             <td style={{ color: '#10b981' }}>+ ₹{emp.netSalary}</td>
                                                             <td style={{ color: '#ef4444' }}>- ₹{emp.totalDeduction}</td>
                                                             <td style={{ fontWeight: 'bold' }}>₹{emp.salaryInHand}</td>
+                                                            <td>
+                                                                <button 
+                                                                    className="btn btn-outline" 
+                                                                    style={{ padding: '4px 8px', fontSize: '12px', marginTop: 0 }}
+                                                                    onClick={() => handleDownloadSingleSalary(emp)}
+                                                                >
+                                                                    Download PDF
+                                                                </button>
+                                                            </td>
                                                         </tr>
                                                     ))}
                                                 </tbody>
