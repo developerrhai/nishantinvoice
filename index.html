@@ -11,6 +11,10 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <!-- html2pdf for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- SheetJS for Excel processing -->
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <!-- JSZip for bulk download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <!-- Modern Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
@@ -24,8 +28,6 @@
             --text-muted: #94a3b8;
             --border-color: #334155;
             --danger: #ef4444;
-            
-            /* Print/Preview colors */
             --print-border: #000000;
             --print-red: #d32f2f;
         }
@@ -56,6 +58,8 @@
             margin-bottom: 2rem;
             padding-bottom: 1rem;
             border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
         .header h1 {
@@ -66,19 +70,39 @@
             -webkit-text-fill-color: transparent;
         }
 
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: var(--surface-color);
+            padding: 0.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .nav-tabs button {
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-tabs button.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
         .main-content {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 2rem;
         }
 
-        @media (max-width: 1100px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Editor Styles */
+        /* Card Styles */
         .card {
             background: var(--surface-color);
             border-radius: 12px;
@@ -94,6 +118,7 @@
             color: var(--text-main);
         }
 
+        /* Form Layout */
         .form-row {
             display: flex;
             gap: 1rem;
@@ -151,6 +176,7 @@
             border: 1px solid var(--border-color);
         }
 
+        /* Buttons */
         .btn {
             background: var(--primary-color);
             color: white;
@@ -167,8 +193,13 @@
             gap: 0.5rem;
         }
 
-        .btn:hover {
+        .btn:hover:not(:disabled) {
             background: var(--primary-hover);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         .btn-outline {
@@ -203,234 +234,121 @@
             color: white;
         }
 
-        /* Invoice Preview Styles */
+        /* Preview Container */
         .preview-pane-container {
-            background: #fff;
+            background: #cbd5e1;
             border-radius: 8px;
             overflow: auto;
             padding: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
         }
 
+        /* A4 Size Print layout */
         .invoice-preview {
             background: white;
             color: black;
-            width: 210mm; /* A4 width */
-            min-height: 297mm; /* A4 height */
+            width: 210mm;
+            min-height: 297mm;
             padding: 15mm;
             box-sizing: border-box;
-            font-family: 'Arial', sans-serif; /* Standard readable font for print */
+            font-family: 'Arial', sans-serif;
             font-size: 12px;
-            position: relative;
             margin: 0 auto;
+            transform-origin: top center;
         }
 
-        .invoice-header-img {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .invoice-header-img h1 {
-            color: #b71c1c; /* Deep red for BL Group */
-            font-size: 48px;
-            margin: 0;
-            font-weight: 900;
-            letter-spacing: 2px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .invoice-header-img h1 .arrow-up {
-            font-size: 40px;
-            color: black;
-            margin-left: 10px;
-        }
-
-        .invoice-header-img .sub-title {
-            color: #d32f2f;
-            font-weight: bold;
-            font-size: 18px;
-            margin-top: 5px;
+        /* Mobile Responsiveness */
+        @media (max-width: 1100px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
         }
         
-        .invoice-header-img .dealers {
-            color: #283593;
-            font-weight: bold;
-            font-size: 14px;
-            margin-top: 5px;
+        @media (max-width: 900px) {
+            body {
+                padding: 1rem;
+            }
+            .form-row {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .item-row {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+            .item-row .btn-icon {
+                width: 100%;
+            }
+            .invoice-preview {
+                transform: scale(0.65);
+                margin-bottom: -100px; /* Adjust spacing after scale */
+            }
         }
 
-        .invoice-header-img .gstin {
-            color: #1a237e;
-            font-weight: bold;
-            font-size: 14px;
-            margin: 10px 0;
-            border-top: 1px solid #d32f2f;
-            border-bottom: 1px solid #d32f2f;
-            padding: 5px 0;
+        @media (max-width: 600px) {
+            .invoice-preview {
+                transform: scale(0.45);
+                margin-bottom: -150px;
+            }
         }
 
-        .invoice-header-img .address {
-            font-size: 11px;
-            line-height: 1.4;
-        }
+        /* Invoice Internal Styles */
+        .invoice-header-img { text-align: center; margin-bottom: 20px; }
+        .inv-table { width: 100%; border-collapse: collapse; border: 2px solid var(--print-border); margin-bottom: 10px; }
+        .inv-table th, .inv-table td { border: 1px solid var(--print-border); padding: 5px 8px; vertical-align: top; }
+        .inv-table td { height: 25px; }
+        .red-text { color: var(--print-red); font-weight: bold; }
+        .payment-term { text-align: center; font-weight: bold; color: var(--print-red); text-transform: uppercase; }
+        .items-header th { text-align: center; font-weight: bold; background-color: #fff; }
+        .dept-row { text-align: center; font-weight: bold; border-bottom: 1px solid var(--print-border); }
+        .items-body td { border-bottom: none; border-top: none; }
+        .items-body tr:last-child td { border-bottom: 1px solid var(--print-border); }
+        .amount-col { text-align: right; }
+        .center-col { text-align: center; }
+        .totals-section td { font-weight: bold; }
+        .igst-label { color: #673ab7; text-decoration: underline; }
+        .footer-amount { display: flex; border-top: 2px solid var(--print-border); border-bottom: 2px solid var(--print-border); }
+        .footer-amount .label { font-weight: bold; padding: 5px 8px; border-right: 1px solid var(--print-border); }
+        .footer-amount .words { padding: 5px 8px; flex-grow: 1; font-weight: bold; text-transform: capitalize; }
+        .footer-amount .total-val { padding: 5px 8px; font-weight: bold; text-align: right; border-left: 1px solid var(--print-border); min-width: 120px; }
+        .terms-conditions { margin-top: 15px; font-size: 11px; line-height: 1.5; position: relative; }
+        .sign-area { position: absolute; right: 0; bottom: 0; text-align: right; font-weight: bold; }
 
-        /* Table Structure */
-        .inv-table {
-            width: 100%;
-            border-collapse: collapse;
-            border: 2px solid var(--print-border);
-            margin-bottom: 10px;
-        }
-
-        .inv-table th, .inv-table td {
-            border: 1px solid var(--print-border);
-            padding: 5px 8px;
-            vertical-align: top;
-        }
-        
-        .inv-table td {
-            height: 25px; /* Minimum height for rows */
-        }
-
-        /* Top Details Section */
-        .top-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-        }
-        
-        .top-details .bill-info {
-            display: flex;
-            border-bottom: 1px solid var(--print-border);
-        }
-        
-        .top-details .bill-info div {
-            padding: 5px 8px;
-            font-weight: bold;
-        }
-        
-        .client-info td {
-            padding: 5px 8px;
-        }
-
-        .red-text {
-            color: var(--print-red);
-            font-weight: bold;
-        }
-
-        .payment-term {
-            text-align: center;
-            font-weight: bold;
-            color: var(--print-red);
-            text-transform: uppercase;
-        }
-
-        /* Items Section */
-        .items-header th {
-            text-align: center;
-            font-weight: bold;
-            background-color: #fff;
-        }
-
-        .dept-row {
-            text-align: center;
-            font-weight: bold;
-            border-bottom: 1px solid var(--print-border);
-        }
-
-        .items-body td {
-            border-bottom: none;
-            border-top: none;
-        }
-        
-        .items-body tr:last-child td {
-            border-bottom: 1px solid var(--print-border);
-        }
-        
-        /* Fixed height for items body to push footer down */
-        .items-container {
-            min-height: 350px;
-        }
-
-        .amount-col {
-            text-align: right;
-        }
-        
-        .center-col {
-            text-align: center;
-        }
-
-        /* Totals Section */
-        .totals-section td {
-            font-weight: bold;
-        }
-        
-        .totals-section .calc-label {
-            width: 150px;
-        }
-
-        .igst-label {
-            color: #673ab7;
-            text-decoration: underline;
-        }
-
-        /* Footer Section */
-        .footer-amount {
-            display: flex;
-            border-top: 2px solid var(--print-border);
-            border-bottom: 2px solid var(--print-border);
-        }
-        
-        .footer-amount .label {
-            font-weight: bold;
-            padding: 5px 8px;
-            border-right: 1px solid var(--print-border);
-        }
-        
-        .footer-amount .words {
-            padding: 5px 8px;
-            flex-grow: 1;
-            font-weight: bold;
-            text-transform: capitalize;
-        }
-        
-        .footer-amount .total-val {
-            padding: 5px 8px;
-            font-weight: bold;
-            text-align: right;
-            border-left: 1px solid var(--print-border);
-            min-width: 120px;
-        }
-
-        .terms-conditions {
-            margin-top: 15px;
-            font-size: 11px;
-            line-height: 1.5;
-            position: relative;
-        }
-        
-        .sign-area {
-            position: absolute;
-            right: 0;
-            bottom: 0;
-            text-align: right;
-            font-weight: bold;
-        }
-
-        /* Loader */
         .loader {
             border: 3px solid rgba(255,255,255,0.3);
             border-radius: 50%;
             border-top: 3px solid #fff;
             width: 20px;
             height: 20px;
-            -webkit-animation: spin 1s linear infinite; /* Safari */
+            -webkit-animation: spin 1s linear infinite;
             animation: spin 1s linear infinite;
         }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        /* Bulk List Table */
+        .bulk-list {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            background: #0f172a;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .bulk-list th, .bulk-list td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .bulk-list th {
+            background: #1e293b;
+            color: #818cf8;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -440,7 +358,7 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // Number to Words Converter (Indian Numbering System)
+        // Number to Words Converter
         function numberToWords(num) {
             const a = ['','one ','two ','three ','four ', 'five ','six ','seven ','eight ','nine ','ten ','eleven ','twelve ','thirteen ','fourteen ','fifteen ','sixteen ','seventeen ','eighteen ','nineteen '];
             const b = ['', '', 'twenty','thirty','forty','fifty', 'sixty','seventy','eighty','ninety'];
@@ -457,7 +375,166 @@
             return str.trim();
         }
 
+        // Invoice Preview Component
+        const InvoicePreview = ({ data, forwardRef, hidden }) => {
+            const subTotal = data.items.reduce((sum, item) => sum + Number(item.rate || 0), 0);
+            const igstAmount = (subTotal * (Number(data.igstRate) / 100));
+            const grandTotal = Math.round(subTotal + igstAmount);
+            const amountInWords = numberToWords(grandTotal);
+
+            return (
+                <div 
+                    className="invoice-preview" 
+                    ref={forwardRef} 
+                    style={hidden ? { position: 'absolute', top: '-9999px', left: '-9999px' } : {}}
+                >
+                    <div className="invoice-header-img" style={{ marginBottom: '10px' }}>
+                        <img src="./logo.jpeg" alt="BL Group Letterhead" style={{ width: '100%', height: 'auto', display: 'block' }} crossOrigin="anonymous" />
+                    </div>
+
+                    <table className="inv-table">
+                        <tbody>
+                            <tr>
+                                <td colSpan="3" style={{ padding: 0 }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <div style={{ padding: '5px 8px', width: '50%', borderRight: '1px solid #000', display: 'flex' }}>
+                                            <b style={{ width: '80px' }}>BILL NO :</b>
+                                            <b>{data.billNo}</b>
+                                        </div>
+                                        <div style={{ padding: '5px 8px', width: '50%', display: 'flex' }}>
+                                            <b style={{ width: '80px' }}>DATE :</b>
+                                            <b>{data.date}</b>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colSpan="3" style={{ display: 'flex' }}>
+                                    <b style={{ width: '80px' }}>M/s :</b>
+                                    <b>{data.clientName}</b>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colSpan="3" style={{ whiteSpace: 'pre-wrap' }}>{data.clientAddress}</td>
+                            </tr>
+                            <tr>
+                                <td colSpan="3">
+                                    <b>{data.clientName} GST NO.- {data.clientGst}</b>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colSpan="3" className="red-text">
+                                    GST SAC CODE : {data.sacCode}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colSpan="3" className="payment-term">
+                                    PAYMENT TERM : {data.paymentTerm}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table className="inv-table items-table">
+                        <thead className="items-header">
+                            <tr>
+                                <th style={{ width: '60%' }}>PARTICULAR</th>
+                                <th>WORKING DAYS</th>
+                                <th>HOURS</th>
+                                <th>RATE PER WORKING DAYS</th>
+                                <th>AMOUNT RS.</th>
+                            </tr>
+                        </thead>
+                        <tbody className="items-body">
+                            <tr>
+                                <td className="dept-row" colSpan="5">DEPT. {data.department}</td>
+                            </tr>
+                            <tr><td colSpan="5" style={{height: '10px'}}></td></tr>
+                            
+                            {data.items.map((item, idx) => (
+                                <tr key={item.id || idx}>
+                                    <td style={{ whiteSpace: 'pre-wrap' }}>{item.particulars}</td>
+                                    <td className="center-col">{item.workingDays}</td>
+                                    <td className="center-col">{item.hours}</td>
+                                    <td className="amount-col">{item.rate ? Number(item.rate).toFixed(2) : ''}</td>
+                                    <td className="amount-col"><b>{item.rate ? Number(item.rate) : ''}</b></td>
+                                </tr>
+                            ))}
+                            
+                            <tr>
+                                <td style={{ height: '150px' }}></td>
+                                <td></td><td></td><td></td><td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table className="inv-table" style={{ marginTop: '-10px', borderTop: 'none' }}>
+                        <tbody className="totals-section">
+                            <tr>
+                                <td className="calc-label" style={{ borderRight: 'none', borderBottom: 'none' }}>Total</td>
+                                <td style={{ borderLeft: 'none', borderRight: 'none', borderBottom: 'none' }}></td>
+                                <td style={{ borderLeft: 'none', borderRight: 'none', borderBottom: 'none' }}></td>
+                                <td style={{ borderLeft: 'none', width: '20%' }}></td>
+                                <td className="amount-col" style={{ width: '15%' }}><b>{subTotal}</b></td>
+                            </tr>
+                            <tr>
+                                <td colSpan="4" style={{ border: '2px solid var(--print-border)', padding: '2px 5px', width: 'fit-content', borderRight: 'none', display: 'inline-block' }}><b>ADD:</b></td>
+                                <td rowSpan="4" style={{ borderLeft: '1px solid var(--print-border)' }}></td>
+                            </tr>
+                            <tr>
+                                <td colSpan="3" style={{ border: 'none', padding: '5px' }}>
+                                    <span className="igst-label">IGST @ {data.igstRate}%</span>
+                                </td>
+                                <td style={{ border: 'none' }}></td>
+                                <td className="amount-col" style={{ borderLeft: '1px solid var(--print-border)' }}><b>{igstAmount}</b></td>
+                            </tr>
+                            <tr>
+                                <td colSpan="3" style={{ border: 'none', padding: '15px 5px 5px' }}>
+                                    <b>BL GROUP GST NO. : 27ABDFB0222B1ZC</b><br/>
+                                    <b>PAN NO: ABDFB0222B</b>
+                                </td>
+                                <td style={{ border: 'none' }}></td>
+                                <td style={{ borderLeft: '1px solid var(--print-border)', borderTop: 'none' }}></td>
+                            </tr>
+                            <tr>
+                                <td colSpan="4" style={{ border: 'none', padding: '5px' }}>
+                                    Category - M & R and Supply of Tangible Goods For Use Service.
+                                </td>
+                                <td style={{ borderLeft: '1px solid var(--print-border)', borderTop: 'none' }}></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div className="footer-amount">
+                        <div className="label">RUPEES:</div>
+                        <div className="words">{amountInWords} rupees only</div>
+                        <div className="total-val">{grandTotal}</div>
+                    </div>
+
+                    <div className="terms-conditions">
+                        <b>E. & O. E.</b>
+                        <div style={{ marginTop: '10px' }}>
+                            18% Interest will be charged if the Bill is not paid within 10 days after presentation<br/>
+                            Sales Tax if any as per Maharashtra Sales Tax on the Transfer of the right to use any goods<br/>
+                            for any purpose act 1985, service-tax (Central Govt.) shall be charged later, if applicable.<br/>
+                            Subject to Nashik Jurisdiction.
+                        </div>
+                        <div className="red-text" style={{ marginTop: '5px' }}>
+                            encl : work sheet duly certified.
+                        </div>
+                        <div className="sign-area">
+                            <div style={{ marginBottom: '40px' }}>For BL GROUP</div>
+                            <div>AUTH. SIGNATORY</div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         function App() {
+            const [activeTab, setActiveTab] = useState('single'); // 'single' or 'bulk'
+            
+            // Single Invoice State
             const today = new Date();
             const formattedDate = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}-${today.getFullYear()}`;
             
@@ -471,63 +548,21 @@
                 paymentTerm: '10 DAYS',
                 department: 'STORE',
                 igstRate: 18,
-                items: [
-                    { 
-                        id: 1, 
-                        particulars: 'SUPPLY OF 5 TON CAPACITY DIESEL FORKLIFT NO GJ - 15 - BB 9683 ON HIRING BASIS\n\nTHE WORK DONE FROM 01/08/2026 TO 31/08/2026 AS PER LOG SHEET NO. 705 & 706', 
-                        workingDays: 'fix', 
-                        hours: '12 HRS', 
-                        rate: 57500 
-                    }
-                ]
+                items: [{ id: 1, particulars: 'SUPPLY OF 5 TON CAPACITY DIESEL FORKLIFT NO GJ - 15 - BB 9683 ON HIRING BASIS\n\nTHE WORK DONE FROM 01/08/2026 TO 31/08/2026 AS PER LOG SHEET NO. 705 & 706', workingDays: 'fix', hours: '12 HRS', rate: 57500 }]
             });
 
+            // Bulk Invoice State
+            const [bulkInvoices, setBulkInvoices] = useState([]);
             const [isGenerating, setIsGenerating] = useState(false);
-            const previewRef = useRef(null);
-
-            const updateField = (field, value) => {
-                setData(prev => ({ ...prev, [field]: value }));
-            };
-
-            const updateItem = (id, field, value) => {
-                setData(prev => ({
-                    ...prev,
-                    items: prev.items.map(item => item.id === id ? { ...item, [field]: value } : item)
-                }));
-            };
-
-            const addItem = () => {
-                setData(prev => ({
-                    ...prev,
-                    items: [...prev.items, { 
-                        id: Date.now(), 
-                        particulars: '', 
-                        workingDays: 'fix', 
-                        hours: '', 
-                        rate: 0 
-                    }]
-                }));
-            };
-
-            const removeItem = (id) => {
-                setData(prev => ({
-                    ...prev,
-                    items: prev.items.filter(item => item.id !== id)
-                }));
-            };
-
-            // Calculations
-            const subTotal = data.items.reduce((sum, item) => sum + Number(item.rate || 0), 0);
-            const igstAmount = (subTotal * (Number(data.igstRate) / 100));
-            const grandTotal = Math.round(subTotal + igstAmount);
+            const [generationProgress, setGenerationProgress] = useState(0);
             
-            // Format number to words
-            const amountInWords = numberToWords(grandTotal);
+            const previewRef = useRef(null);
+            const hiddenPreviewRef = useRef(null);
+            const [hiddenPreviewData, setHiddenPreviewData] = useState(data);
 
-            const handleDownloadPdf = async () => {
+            const handleDownloadSinglePdf = async () => {
                 if (!previewRef.current) return;
                 setIsGenerating(true);
-                
                 try {
                     const element = previewRef.current;
                     const opt = {
@@ -537,13 +572,126 @@
                         html2canvas: { scale: 2, useCORS: true },
                         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
                     };
-                    
                     await html2pdf().set(opt).from(element).save();
                 } catch (error) {
-                    console.error("PDF Generation Error:", error);
-                    alert("Failed to generate PDF. See console for details.");
+                    console.error(error);
+                    alert("Failed to generate PDF.");
                 } finally {
                     setIsGenerating(false);
+                }
+            };
+
+            const downloadTemplate = () => {
+                const ws_data = [
+                    ["Bill_No", "Date", "Client_Name", "Client_Address", "Client_GST", "SAC_Code", "Payment_Term", "Department", "IGST_Rate", "Particulars", "Working_Days", "Hours", "Rate"],
+                    ["BL/F/001/26-27", "31-08-2026", "ACME CORP", "123 Street, City", "24AABBCC11", "997313", "10 DAYS", "STORE", "18", "Forklift 5 Ton", "fix", "12 HRS", "50000"],
+                    ["BL/F/001/26-27", "31-08-2026", "ACME CORP", "123 Street, City", "24AABBCC11", "997313", "10 DAYS", "STORE", "18", "Hydra Crane Service", "2", "8 HRS", "12000"],
+                    ["BL/F/002/26-27", "01-09-2026", "XYZ LTD", "456 Road, Delhi", "07XYZCC22", "997313", "15 DAYS", "PLANT", "18", "Hydra Machine", "fix", "24 HRS", "80000"]
+                ];
+                const ws = XLSX.utils.aoa_to_sheet(ws_data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Template");
+                XLSX.writeFile(wb, "Invoice_Bulk_Template.xlsx");
+            };
+
+            const handleFileUpload = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    const data = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet);
+
+                    // Group by Bill No
+                    const grouped = {};
+                    json.forEach(row => {
+                        const billNo = row.Bill_No;
+                        if (!billNo) return;
+                        
+                        if (!grouped[billNo]) {
+                            grouped[billNo] = {
+                                billNo: billNo,
+                                date: row.Date || '',
+                                clientName: row.Client_Name || '',
+                                clientAddress: row.Client_Address || '',
+                                clientGst: row.Client_GST || '',
+                                sacCode: row.SAC_Code || '',
+                                paymentTerm: row.Payment_Term || '',
+                                department: row.Department || '',
+                                igstRate: row.IGST_Rate || 18,
+                                items: []
+                            };
+                        }
+                        
+                        grouped[billNo].items.push({
+                            id: Math.random(),
+                            particulars: row.Particulars || '',
+                            workingDays: row.Working_Days || '',
+                            hours: row.Hours || '',
+                            rate: row.Rate || 0
+                        });
+                    });
+
+                    setBulkInvoices(Object.values(grouped));
+                };
+                reader.readAsArrayBuffer(file);
+            };
+
+            const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+            const handleBulkGenerate = async () => {
+                if (bulkInvoices.length === 0) return;
+                setIsGenerating(true);
+                setGenerationProgress(0);
+                
+                try {
+                    const zip = new JSZip();
+                    
+                    for (let i = 0; i < bulkInvoices.length; i++) {
+                        const invData = bulkInvoices[i];
+                        
+                        // Set the hidden preview data to render this specific invoice
+                        setHiddenPreviewData(invData);
+                        
+                        // Wait a tick for React to re-render the hidden component
+                        await sleep(100); 
+                        
+                        const element = hiddenPreviewRef.current;
+                        const opt = {
+                            margin: 0,
+                            filename: `temp.pdf`,
+                            image: { type: 'jpeg', quality: 1 },
+                            html2canvas: { scale: 2, useCORS: true },
+                            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                        };
+                        
+                        // Generate PDF as blob instead of saving directly
+                        const pdfWorker = html2pdf().set(opt).from(element);
+                        const pdfBlob = await pdfWorker.output('blob');
+                        
+                        // Add to zip
+                        zip.file(`Invoice_${invData.billNo.replace(/\//g, '_')}.pdf`, pdfBlob);
+                        
+                        setGenerationProgress(i + 1);
+                    }
+                    
+                    // Generate Zip and download
+                    const zipBlob = await zip.generateAsync({ type: "blob" });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(zipBlob);
+                    link.download = `Bulk_Invoices_${formattedDate}.zip`;
+                    link.click();
+                    
+                } catch (error) {
+                    console.error(error);
+                    alert("An error occurred during bulk generation.");
+                } finally {
+                    setIsGenerating(false);
+                    setGenerationProgress(0);
                 }
             };
 
@@ -551,270 +699,170 @@
                 <div className="app-container">
                     <header className="header">
                         <h1>BL Group Invoice Generator</h1>
+                        <div className="nav-tabs">
+                            <button className={activeTab === 'single' ? 'active' : ''} onClick={() => setActiveTab('single')}>Single Invoice</button>
+                            <button className={activeTab === 'bulk' ? 'active' : ''} onClick={() => setActiveTab('bulk')}>Bulk Excel Upload</button>
+                        </div>
                     </header>
                     
-                    <main className="main-content">
-                        {/* LEFT PANEL: Editor */}
-                        <div className="card">
-                            <h2 className="card-title">Invoice Details</h2>
-                            
-                            <div className="form-row">
-                                <div>
-                                    <label>Bill No.</label>
-                                    <input value={data.billNo} onChange={e => updateField('billNo', e.target.value)} />
-                                </div>
-                                <div>
-                                    <label>Date</label>
-                                    <input value={data.date} onChange={e => updateField('date', e.target.value)} />
-                                </div>
-                            </div>
+                    {/* HIDDEN INVOICE FOR BULK RENDER */}
+                    {activeTab === 'bulk' && (
+                        <InvoicePreview data={hiddenPreviewData} forwardRef={hiddenPreviewRef} hidden={true} />
+                    )}
 
-                            <div className="section-title">Client Details</div>
-                            <div className="form-group">
-                                <label>M/s (Client Name)</label>
-                                <input value={data.clientName} onChange={e => updateField('clientName', e.target.value)} />
-                            </div>
-                            <div className="form-group" style={{ marginTop: '1rem' }}>
-                                <label>Client Address</label>
-                                <textarea value={data.clientAddress} onChange={e => updateField('clientAddress', e.target.value)} />
-                            </div>
-                            <div className="form-row" style={{ marginTop: '1rem' }}>
-                                <div>
-                                    <label>Client GST No.</label>
-                                    <input value={data.clientGst} onChange={e => updateField('clientGst', e.target.value)} />
+                    {activeTab === 'single' ? (
+                        <main className="main-content">
+                            <div className="card">
+                                <h2 className="card-title">Invoice Details</h2>
+                                <div className="form-row">
+                                    <div>
+                                        <label>Bill No.</label>
+                                        <input value={data.billNo} onChange={e => setData({...data, billNo: e.target.value})} />
+                                    </div>
+                                    <div>
+                                        <label>Date</label>
+                                        <input value={data.date} onChange={e => setData({...data, date: e.target.value})} />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label>Payment Term</label>
-                                    <input value={data.paymentTerm} onChange={e => updateField('paymentTerm', e.target.value)} />
+                                <div className="section-title">Client Details</div>
+                                <div className="form-group">
+                                    <label>M/s (Client Name)</label>
+                                    <input value={data.clientName} onChange={e => setData({...data, clientName: e.target.value})} />
                                 </div>
-                            </div>
-                            
-                            <div className="form-group" style={{ marginTop: '1rem' }}>
-                                <label>GST SAC CODE</label>
-                                <input value={data.sacCode} onChange={e => updateField('sacCode', e.target.value)} />
-                            </div>
+                                <div className="form-group" style={{ marginTop: '1rem' }}>
+                                    <label>Client Address</label>
+                                    <textarea value={data.clientAddress} onChange={e => setData({...data, clientAddress: e.target.value})} />
+                                </div>
+                                <div className="form-row" style={{ marginTop: '1rem' }}>
+                                    <div>
+                                        <label>Client GST No.</label>
+                                        <input value={data.clientGst} onChange={e => setData({...data, clientGst: e.target.value})} />
+                                    </div>
+                                    <div>
+                                        <label>Payment Term</label>
+                                        <input value={data.paymentTerm} onChange={e => setData({...data, paymentTerm: e.target.value})} />
+                                    </div>
+                                </div>
+                                <div className="form-group" style={{ marginTop: '1rem' }}>
+                                    <label>GST SAC CODE</label>
+                                    <input value={data.sacCode} onChange={e => setData({...data, sacCode: e.target.value})} />
+                                </div>
 
-                            <div className="section-title">Invoice Items</div>
-                            <div className="form-group">
-                                <label>Department / Section Header</label>
-                                <input value={data.department} onChange={e => updateField('department', e.target.value)} />
-                            </div>
+                                <div className="section-title">Invoice Items</div>
+                                <div className="form-group">
+                                    <label>Department / Section Header</label>
+                                    <input value={data.department} onChange={e => setData({...data, department: e.target.value})} />
+                                </div>
 
-                            <div style={{ marginTop: '1rem' }}>
-                                <label>Line Items</label>
-                                {data.items.map(item => (
-                                    <div className="item-row" key={item.id}>
-                                        <textarea 
-                                            placeholder="Particulars (Description)" 
-                                            value={item.particulars} 
-                                            onChange={e => updateItem(item.id, 'particulars', e.target.value)} 
-                                        />
-                                        <div>
-                                            <input placeholder="Days" value={item.workingDays} onChange={e => updateItem(item.id, 'workingDays', e.target.value)} />
+                                <div style={{ marginTop: '1rem' }}>
+                                    <label>Line Items</label>
+                                    {data.items.map(item => (
+                                        <div className="item-row" key={item.id}>
+                                            <textarea 
+                                                placeholder="Particulars (Description)" 
+                                                value={item.particulars} 
+                                                onChange={e => setData({...data, items: data.items.map(i => i.id === item.id ? {...i, particulars: e.target.value} : i)})} 
+                                            />
+                                            <div>
+                                                <input placeholder="Days" value={item.workingDays} onChange={e => setData({...data, items: data.items.map(i => i.id === item.id ? {...i, workingDays: e.target.value} : i)})} />
+                                            </div>
+                                            <div>
+                                                <input placeholder="Hrs" value={item.hours} onChange={e => setData({...data, items: data.items.map(i => i.id === item.id ? {...i, hours: e.target.value} : i)})} />
+                                            </div>
+                                            <div>
+                                                <input type="number" placeholder="Rate" value={item.rate} onChange={e => setData({...data, items: data.items.map(i => i.id === item.id ? {...i, rate: e.target.value} : i)})} />
+                                            </div>
+                                            <button className="btn-icon" onClick={() => setData({...data, items: data.items.filter(i => i.id !== item.id)})}>×</button>
                                         </div>
-                                        <div>
-                                            <input placeholder="Hrs" value={item.hours} onChange={e => updateItem(item.id, 'hours', e.target.value)} />
-                                        </div>
-                                        <div>
-                                            <input type="number" placeholder="Rate" value={item.rate} onChange={e => updateItem(item.id, 'rate', e.target.value)} />
-                                        </div>
-                                        <button className="btn-icon" onClick={() => removeItem(item.id)}>×</button>
+                                    ))}
+                                    <button className="btn btn-outline" onClick={() => setData({...data, items: [...data.items, { id: Date.now(), particulars: '', workingDays: 'fix', hours: '', rate: 0 }]})}>+ Add Line Item</button>
+                                </div>
+                                
+                                <div className="section-title">Tax Options</div>
+                                <div className="form-row">
+                                    <div>
+                                        <label>IGST Rate (%)</label>
+                                        <input type="number" value={data.igstRate} onChange={e => setData({...data, igstRate: e.target.value})} />
                                     </div>
-                                ))}
-                                <button className="btn btn-outline" onClick={addItem}>+ Add Line Item</button>
-                            </div>
-                            
-                            <div className="section-title">Tax Options</div>
-                            <div className="form-row">
-                                <div>
-                                    <label>IGST Rate (%)</label>
-                                    <input type="number" value={data.igstRate} onChange={e => updateField('igstRate', e.target.value)} />
+                                    <div>
+                                        <label>Subtotal (Auto)</label>
+                                        <input value={data.items.reduce((s, i) => s + Number(i.rate||0), 0)} disabled style={{ backgroundColor: '#1e293b', cursor: 'not-allowed' }} />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label>Subtotal (Auto)</label>
-                                    <input value={subTotal} disabled style={{ backgroundColor: '#1e293b', cursor: 'not-allowed' }} />
-                                </div>
+
+                                <button className="btn" style={{ marginTop: '2rem' }} onClick={handleDownloadSinglePdf} disabled={isGenerating}>
+                                    {isGenerating ? <div className="loader"></div> : 'Download PDF Invoice'}
+                                </button>
                             </div>
 
-                            <button 
-                                className="btn" 
-                                style={{ marginTop: '2rem' }} 
-                                onClick={handleDownloadPdf}
-                                disabled={isGenerating}
-                            >
-                                {isGenerating ? <div className="loader"></div> : 'Download PDF Invoice'}
-                            </button>
-                        </div>
-
-                        {/* RIGHT PANEL: Live Preview */}
-                        <div className="preview-pane-container">
-                            <div className="invoice-preview" ref={previewRef}>
-                                {/* Header / Logo Section */}
-                                <div className="invoice-header-img" style={{ marginBottom: '10px' }}>
-                                    <img src="./logo.jpeg" alt="BL Group Letterhead" style={{ width: '100%', height: 'auto', display: 'block' }} />
-                                </div>
-
-                                {/* Main Table */}
-                                <table className="inv-table">
-                                    <tbody>
-                                        {/* Row 1: Bill No and Date */}
-                                        <tr>
-                                            <td colSpan="3" style={{ padding: 0 }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                    <div style={{ padding: '5px 8px', width: '50%', borderRight: '1px solid #000', display: 'flex' }}>
-                                                        <b style={{ width: '80px' }}>BILL NO :</b>
-                                                        <b>{data.billNo}</b>
-                                                    </div>
-                                                    <div style={{ padding: '5px 8px', width: '50%', display: 'flex' }}>
-                                                        <b style={{ width: '80px' }}>DATE :</b>
-                                                        <b>{data.date}</b>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-
-                                        {/* Row 2: M/s */}
-                                        <tr>
-                                            <td colSpan="3" style={{ display: 'flex' }}>
-                                                <b style={{ width: '80px' }}>M/s :</b>
-                                                <b>{data.clientName}</b>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td colSpan="3">{data.clientAddress}</td>
-                                        </tr>
-                                        <tr>
-                                            <td colSpan="3">
-                                                <b>{data.clientName} GST NO.- {data.clientGst}</b>
-                                            </td>
-                                        </tr>
-                                        
-                                        {/* SAC Code */}
-                                        <tr>
-                                            <td colSpan="3" className="red-text">
-                                                GST SAC CODE : {data.sacCode}
-                                            </td>
-                                        </tr>
-                                        
-                                        {/* Payment Terms */}
-                                        <tr>
-                                            <td colSpan="3" className="payment-term">
-                                                PAYMENT TERM : {data.paymentTerm}
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-
-                                {/* Items Table */}
-                                <table className="inv-table items-table">
-                                    <thead className="items-header">
-                                        <tr>
-                                            <th style={{ width: '60%' }}>PARTICULAR</th>
-                                            <th>WORKING DAYS</th>
-                                            <th>HOURS</th>
-                                            <th>RATE PER WORKING DAYS</th>
-                                            <th>AMOUNT RS.</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="items-body">
-                                        {/* Department Row */}
-                                        <tr>
-                                            <td className="dept-row" colSpan="5">DEPT. {data.department}</td>
-                                        </tr>
-                                        
-                                        {/* Spacer */}
-                                        <tr><td colSpan="5" style={{height: '10px'}}></td></tr>
-                                        
-                                        {/* Line Items */}
-                                        {data.items.map((item, idx) => (
-                                            <tr key={item.id}>
-                                                <td style={{ whiteSpace: 'pre-wrap' }}>{item.particulars}</td>
-                                                <td className="center-col">{item.workingDays}</td>
-                                                <td className="center-col">{item.hours}</td>
-                                                <td className="amount-col">{item.rate ? Number(item.rate).toFixed(2) : ''}</td>
-                                                <td className="amount-col"><b>{item.rate ? Number(item.rate) : ''}</b></td>
-                                            </tr>
-                                        ))}
-                                        
-                                        {/* Empty space to push totals down */}
-                                        <tr>
-                                            <td style={{ height: '150px' }}></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-
-                                {/* Totals Table (Seamless with items) */}
-                                <table className="inv-table" style={{ marginTop: '-10px', borderTop: 'none' }}>
-                                    <tbody className="totals-section">
-                                        <tr>
-                                            <td className="calc-label" style={{ borderRight: 'none', borderBottom: 'none' }}>Total</td>
-                                            <td style={{ borderLeft: 'none', borderRight: 'none', borderBottom: 'none' }}></td>
-                                            <td style={{ borderLeft: 'none', borderRight: 'none', borderBottom: 'none' }}></td>
-                                            <td style={{ borderLeft: 'none', width: '20%' }}></td>
-                                            <td className="amount-col" style={{ width: '15%' }}><b>{subTotal}</b></td>
-                                        </tr>
-                                        <tr>
-                                            <td colSpan="4" style={{ border: '2px solid var(--print-border)', padding: '2px 5px', width: 'fit-content', borderRight: 'none', display: 'inline-block' }}><b>ADD:</b></td>
-                                            <td rowSpan="4" style={{ borderLeft: '1px solid var(--print-border)' }}></td>
-                                        </tr>
-                                        <tr>
-                                            <td colSpan="3" style={{ border: 'none', padding: '5px' }}>
-                                                <span className="igst-label">IGST @ {data.igstRate}%</span>
-                                            </td>
-                                            <td style={{ border: 'none' }}></td>
-                                            <td className="amount-col" style={{ borderLeft: '1px solid var(--print-border)' }}><b>{igstAmount}</b></td>
-                                        </tr>
-                                        <tr>
-                                            <td colSpan="3" style={{ border: 'none', padding: '15px 5px 5px' }}>
-                                                <b>BL GROUP GST NO. : 27ABDFB0222B1ZC</b><br/>
-                                                <b>PAN NO: ABDFB0222B</b>
-                                            </td>
-                                            <td style={{ border: 'none' }}></td>
-                                            <td style={{ borderLeft: '1px solid var(--print-border)', borderTop: 'none' }}></td>
-                                        </tr>
-                                        <tr>
-                                            <td colSpan="4" style={{ border: 'none', padding: '5px' }}>
-                                                Category - M & R and Supply of Tangible Goods For Use Service.
-                                            </td>
-                                            <td style={{ borderLeft: '1px solid var(--print-border)', borderTop: 'none' }}></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-
-                                {/* Rupees Footer */}
-                                <div className="footer-amount">
-                                    <div className="label">RUPEES:</div>
-                                    <div className="words">{amountInWords} rupees only</div>
-                                    <div className="total-val">{grandTotal}</div>
-                                </div>
-
-                                {/* Terms and Signature */}
-                                <div className="terms-conditions">
-                                    <b>E. & O. E.</b>
-                                    
-                                    <div style={{ marginTop: '10px' }}>
-                                        18% Interest will be charged if the Bill is not paid within 10 days after presentation<br/>
-                                        Sales Tax if any as per Maharashtra Sales Tax on the Transfer of the right to use any goods<br/>
-                                        for any purpose act 1985, service-tax (Central Govt.) shall be charged later, if applicable.<br/>
-                                        Subject to Nashik Jurisdiction.
-                                    </div>
-                                    
-                                    <div className="red-text" style={{ marginTop: '5px' }}>
-                                        encl : work sheet duly certified.
-                                    </div>
-                                    
-                                    <div className="sign-area">
-                                        <div style={{ marginBottom: '40px' }}>For BL GROUP</div>
-                                        <div>AUTH. SIGNATORY</div>
-                                    </div>
-                                </div>
+                            <div className="preview-pane-container">
+                                <InvoicePreview data={data} forwardRef={previewRef} />
                             </div>
-                        </div>
-                    </main>
+                        </main>
+                    ) : (
+                        <main>
+                            <div className="card" style={{ maxWidth: '800px', margin: '0 auto' }}>
+                                <h2 className="card-title">Bulk Excel Generation</h2>
+                                <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', lineHeight: '1.5' }}>
+                                    Upload an Excel file to generate multiple invoices at once. If an invoice has multiple line items, simply repeat the <code>Bill_No</code> and Client details on the next row with the new item details.
+                                </p>
+                                
+                                <div className="form-row" style={{ alignItems: 'center', marginBottom: '2rem' }}>
+                                    <button className="btn btn-outline" onClick={downloadTemplate} style={{ flex: 1, margin: 0 }}>
+                                        📥 Download Excel Template
+                                    </button>
+                                    <div style={{ flex: 2 }}>
+                                        <input type="file" accept=".xlsx, .xls, .csv" onChange={handleFileUpload} style={{ padding: '0.6rem' }} />
+                                    </div>
+                                </div>
+
+                                {bulkInvoices.length > 0 && (
+                                    <div>
+                                        <div className="section-title">Parsed Invoices ({bulkInvoices.length})</div>
+                                        <table className="bulk-list">
+                                            <thead>
+                                                <tr>
+                                                    <th>Bill No.</th>
+                                                    <th>Client</th>
+                                                    <th>Items</th>
+                                                    <th>Total Amt</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {bulkInvoices.map((inv, idx) => {
+                                                    const total = inv.items.reduce((s, i) => s + Number(i.rate||0), 0) * (1 + (inv.igstRate/100));
+                                                    return (
+                                                        <tr key={idx}>
+                                                            <td>{inv.billNo}</td>
+                                                            <td>{inv.clientName}</td>
+                                                            <td>{inv.items.length} items</td>
+                                                            <td>₹{Math.round(total)}</td>
+                                                        </tr>
+                                                    )
+                                                })}
+                                            </tbody>
+                                        </table>
+
+                                        <button 
+                                            className="btn" 
+                                            style={{ marginTop: '2rem', padding: '1rem' }} 
+                                            onClick={handleBulkGenerate}
+                                            disabled={isGenerating}
+                                        >
+                                            {isGenerating ? (
+                                                <>
+                                                    <div className="loader"></div> 
+                                                    Generating PDF {generationProgress} of {bulkInvoices.length}...
+                                                </>
+                                            ) : (
+                                                `🚀 Generate & Download ZIP (${bulkInvoices.length} Invoices)`
+                                            )}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </main>
+                    )}
                 </div>
             );
         }
