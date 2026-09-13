@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BL Group Invoice Generator</title>
+    <title>BL Group Automation Hub</title>
     <!-- React & ReactDOM -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -24,6 +24,8 @@
             --surface-color: #1e293b;
             --primary-color: #6366f1;
             --primary-hover: #4f46e5;
+            --success-color: #10b981;
+            --success-hover: #059669;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --border-color: #334155;
@@ -32,267 +34,63 @@
             --print-red: #d32f2f;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; padding: 2rem; }
+        .app-container { max-width: 1400px; margin: 0 auto; }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            min-height: 100vh;
-            padding: 2rem;
-        }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 1rem; }
+        .header h1 { font-size: 1.5rem; font-weight: 600; background: linear-gradient(to right, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        .app-container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
+        .nav-tabs { display: flex; gap: 0.5rem; background: var(--surface-color); padding: 0.5rem; border-radius: 8px; border: 1px solid var(--border-color); overflow-x: auto; }
+        .nav-tabs button { background: transparent; color: var(--text-muted); border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s; white-space: nowrap; }
+        .nav-tabs button.active { background: var(--primary-color); color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .nav-tabs button.active-salary { background: var(--success-color); color: white; }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border-color);
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .header h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            background: linear-gradient(to right, #818cf8, #c084fc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .nav-tabs {
-            display: flex;
-            gap: 0.5rem;
-            background: var(--surface-color);
-            padding: 0.5rem;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-
-        .nav-tabs button {
-            background: transparent;
-            color: var(--text-muted);
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-        .nav-tabs button.active {
-            background: var(--primary-color);
-            color: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-        }
-
-        /* Card Styles */
-        .card {
-            background: var(--surface-color);
-            border-radius: 12px;
-            padding: 2rem;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-
-        .card-title {
-            font-size: 1.25rem;
-            margin-bottom: 1.5rem;
-            font-weight: 600;
-            color: var(--text-main);
-        }
-
-        /* Form Layout */
-        .form-row {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .form-row > * {
-            flex: 1;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-            color: var(--text-muted);
-        }
-
-        input, textarea {
-            width: 100%;
-            padding: 0.75rem;
-            background: #0f172a;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: var(--text-main);
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        input:focus, textarea:focus {
-            border-color: var(--primary-color);
-        }
+        .main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
         
-        .section-title {
-            margin: 1.5rem 0 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 600;
-            color: #818cf8;
-        }
-
-        .item-row {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr auto;
-            gap: 0.5rem;
-            align-items: start;
-            margin-bottom: 0.5rem;
-            background: #0f172a;
-            padding: 0.75rem;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-        }
+        /* Card Styles */
+        .card { background: var(--surface-color); border-radius: 12px; padding: 2rem; border: 1px solid var(--border-color); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .card-title { font-size: 1.25rem; margin-bottom: 1.5rem; font-weight: 600; color: var(--text-main); }
+        
+        .form-row { display: flex; gap: 1rem; margin-bottom: 1rem; }
+        .form-row > * { flex: 1; }
+        label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-muted); }
+        input, textarea { width: 100%; padding: 0.75rem; background: #0f172a; border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); outline: none; transition: border-color 0.2s; }
+        textarea { resize: vertical; min-height: 80px; }
+        input:focus, textarea:focus { border-color: var(--primary-color); }
+        
+        .section-title { margin: 1.5rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); font-weight: 600; color: #818cf8; }
+        
+        .item-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 0.5rem; align-items: start; margin-bottom: 0.5rem; background: #0f172a; padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); }
 
         /* Buttons */
-        .btn {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background 0.2s;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn:hover:not(:disabled) {
-            background: var(--primary-hover);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 1px dashed var(--border-color);
-            color: var(--text-muted);
-            margin-top: 0.5rem;
-        }
-
-        .btn-outline:hover {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-            background: rgba(99, 102, 241, 0.1);
-        }
-
-        .btn-icon {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger);
-            border: none;
-            width: 35px;
-            height: 35px;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .btn-icon:hover {
-            background: var(--danger);
-            color: white;
-        }
+        .btn { background: var(--primary-color); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; cursor: pointer; font-weight: 500; transition: background 0.2s; width: 100%; display: flex; justify-content: center; align-items: center; gap: 0.5rem; }
+        .btn:hover:not(:disabled) { background: var(--primary-hover); }
+        .btn-success { background: var(--success-color); }
+        .btn-success:hover:not(:disabled) { background: var(--success-hover); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-outline { background: transparent; border: 1px dashed var(--border-color); color: var(--text-muted); margin-top: 0.5rem; }
+        .btn-outline:hover { border-color: var(--primary-color); color: var(--primary-color); background: rgba(99, 102, 241, 0.1); }
+        .btn-icon { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; width: 35px; height: 35px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .btn-icon:hover { background: var(--danger); color: white; }
 
         /* Preview Container */
-        .preview-pane-container {
-            background: #cbd5e1;
-            border-radius: 8px;
-            overflow: auto;
-            padding: 1rem;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-        }
-
-        /* A4 Size Print layout */
-        .invoice-preview {
-            background: white;
-            color: black;
-            width: 210mm;
-            min-height: 297mm;
-            padding: 15mm;
-            box-sizing: border-box;
-            font-family: 'Arial', sans-serif;
-            font-size: 12px;
-            margin: 0 auto;
-            transform-origin: top center;
-        }
+        .preview-pane-container { background: #cbd5e1; border-radius: 8px; overflow: auto; padding: 1rem; display: flex; justify-content: center; align-items: flex-start; }
+        
+        /* A4 Size Print layout for Invoice & Salary */
+        .print-preview { background: white; color: black; width: 210mm; min-height: 297mm; padding: 15mm; box-sizing: border-box; font-family: 'Arial', sans-serif; font-size: 12px; margin: 0 auto; transform-origin: top center; }
+        .salary-preview { min-height: 148.5mm; } /* A5 size height for salary slip to save paper, but PDF will just use standard width */
 
         /* Mobile Responsiveness */
-        @media (max-width: 1100px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-        }
-        
+        @media (max-width: 1100px) { .main-content { grid-template-columns: 1fr; } }
         @media (max-width: 900px) {
-            body {
-                padding: 1rem;
-            }
-            .form-row {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-            .item-row {
-                grid-template-columns: 1fr;
-                gap: 0.5rem;
-            }
-            .item-row .btn-icon {
-                width: 100%;
-            }
-            .invoice-preview {
-                transform: scale(0.65);
-                margin-bottom: -100px; /* Adjust spacing after scale */
-            }
+            body { padding: 1rem; }
+            .form-row { flex-direction: column; gap: 0.5rem; }
+            .item-row { grid-template-columns: 1fr; gap: 0.5rem; }
+            .item-row .btn-icon { width: 100%; }
+            .print-preview { transform: scale(0.65); margin-bottom: -100px; }
         }
-
-        @media (max-width: 600px) {
-            .invoice-preview {
-                transform: scale(0.45);
-                margin-bottom: -150px;
-            }
-        }
+        @media (max-width: 600px) { .print-preview { transform: scale(0.45); margin-bottom: -150px; } }
 
         /* Invoice Internal Styles */
         .invoice-header-img { text-align: center; margin-bottom: 20px; }
@@ -316,40 +114,19 @@
         .terms-conditions { margin-top: 15px; font-size: 11px; line-height: 1.5; position: relative; }
         .sign-area { position: absolute; right: 0; bottom: 0; text-align: right; font-weight: bold; }
 
-        .loader {
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top: 3px solid #fff;
-            width: 20px;
-            height: 20px;
-            -webkit-animation: spin 1s linear infinite;
-            animation: spin 1s linear infinite;
-        }
+        /* Salary Slip Internal Styles */
+        .salary-table { width: 100%; border-collapse: collapse; border: 2px solid var(--print-border); font-size: 13px; }
+        .salary-table th { background-color: #f1f5f9; padding: 8px; border: 1px solid var(--print-border); }
+        .salary-table td { padding: 8px; border: 1px solid var(--print-border); }
+        .salary-table .header-row td { font-weight: bold; text-align: center; font-size: 16px; background: #e2e8f0; }
+        .salary-table .sub-header td { font-weight: bold; }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        .loader { border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 3px solid #fff; width: 20px; height: 20px; -webkit-animation: spin 1s linear infinite; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Bulk List Table */
-        .bulk-list {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-            background: #0f172a;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        .bulk-list th, .bulk-list td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .bulk-list th {
-            background: #1e293b;
-            color: #818cf8;
-            font-weight: 600;
-        }
+        .bulk-list { width: 100%; border-collapse: collapse; margin-top: 1rem; background: #0f172a; border-radius: 8px; overflow: hidden; }
+        .bulk-list th, .bulk-list td { padding: 10px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .bulk-list th { background: #1e293b; color: #818cf8; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -372,10 +149,12 @@
             str += (n[3] != 0) ? (a[Number(n[3])] || b[n[3][0]] + ' ' + a[n[3][1]]) + 'thousand ' : '';
             str += (n[4] != 0) ? (a[Number(n[4])] || b[n[4][0]] + ' ' + a[n[4][1]]) + 'hundred ' : '';
             str += (n[5] != 0) ? ((str != '') ? 'and ' : '') + (a[Number(n[5])] || b[n[5][0]] + ' ' + a[n[5][1]]) : '';
-            return str.trim();
+            return str.trim() || 'zero';
         }
 
-        // Invoice Preview Component
+        // ===============================================
+        // INVOICE COMPONENTS
+        // ===============================================
         const InvoicePreview = ({ data, forwardRef, hidden }) => {
             const subTotal = data.items.reduce((sum, item) => sum + Number(item.rate || 0), 0);
             const igstAmount = (subTotal * (Number(data.igstRate) / 100));
@@ -383,11 +162,7 @@
             const amountInWords = numberToWords(grandTotal);
 
             return (
-                <div 
-                    className="invoice-preview" 
-                    ref={forwardRef} 
-                    style={hidden ? { position: 'absolute', top: '-9999px', left: '-9999px' } : {}}
-                >
+                <div className="print-preview invoice-preview" ref={forwardRef} style={hidden ? { position: 'absolute', top: '-9999px', left: '-9999px' } : {}}>
                     <div className="invoice-header-img" style={{ marginBottom: '10px' }}>
                         <img src="./logo.jpeg" alt="BL Group Letterhead" style={{ width: '100%', height: 'auto', display: 'block' }} crossOrigin="anonymous" />
                     </div>
@@ -398,40 +173,23 @@
                                 <td colSpan="3" style={{ padding: 0 }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <div style={{ padding: '5px 8px', width: '50%', borderRight: '1px solid #000', display: 'flex' }}>
-                                            <b style={{ width: '80px' }}>BILL NO :</b>
-                                            <b>{data.billNo}</b>
+                                            <b style={{ width: '80px' }}>BILL NO :</b><b>{data.billNo}</b>
                                         </div>
                                         <div style={{ padding: '5px 8px', width: '50%', display: 'flex' }}>
-                                            <b style={{ width: '80px' }}>DATE :</b>
-                                            <b>{data.date}</b>
+                                            <b style={{ width: '80px' }}>DATE :</b><b>{data.date}</b>
                                         </div>
                                     </div>
                                 </td>
                             </tr>
                             <tr>
                                 <td colSpan="3" style={{ display: 'flex' }}>
-                                    <b style={{ width: '80px' }}>M/s :</b>
-                                    <b>{data.clientName}</b>
+                                    <b style={{ width: '80px' }}>M/s :</b><b>{data.clientName}</b>
                                 </td>
                             </tr>
-                            <tr>
-                                <td colSpan="3" style={{ whiteSpace: 'pre-wrap' }}>{data.clientAddress}</td>
-                            </tr>
-                            <tr>
-                                <td colSpan="3">
-                                    <b>{data.clientName} GST NO.- {data.clientGst}</b>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colSpan="3" className="red-text">
-                                    GST SAC CODE : {data.sacCode}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colSpan="3" className="payment-term">
-                                    PAYMENT TERM : {data.paymentTerm}
-                                </td>
-                            </tr>
+                            <tr><td colSpan="3" style={{ whiteSpace: 'pre-wrap' }}>{data.clientAddress}</td></tr>
+                            <tr><td colSpan="3"><b>{data.clientName} GST NO.- {data.clientGst}</b></td></tr>
+                            <tr><td colSpan="3" className="red-text">GST SAC CODE : {data.sacCode}</td></tr>
+                            <tr><td colSpan="3" className="payment-term">PAYMENT TERM : {data.paymentTerm}</td></tr>
                         </tbody>
                     </table>
 
@@ -446,9 +204,7 @@
                             </tr>
                         </thead>
                         <tbody className="items-body">
-                            <tr>
-                                <td className="dept-row" colSpan="5">DEPT. {data.department}</td>
-                            </tr>
+                            <tr><td className="dept-row" colSpan="5">DEPT. {data.department}</td></tr>
                             <tr><td colSpan="5" style={{height: '10px'}}></td></tr>
                             
                             {data.items.map((item, idx) => (
@@ -460,11 +216,7 @@
                                     <td className="amount-col"><b>{item.rate ? Number(item.rate) : ''}</b></td>
                                 </tr>
                             ))}
-                            
-                            <tr>
-                                <td style={{ height: '150px' }}></td>
-                                <td></td><td></td><td></td><td></td>
-                            </tr>
+                            <tr><td style={{ height: '150px' }}></td><td></td><td></td><td></td><td></td></tr>
                         </tbody>
                     </table>
 
@@ -486,7 +238,7 @@
                                     <span className="igst-label">IGST @ {data.igstRate}%</span>
                                 </td>
                                 <td style={{ border: 'none' }}></td>
-                                <td className="amount-col" style={{ borderLeft: '1px solid var(--print-border)' }}><b>{igstAmount}</b></td>
+                                <td className="amount-col" style={{ borderLeft: '1px solid var(--print-border)' }}><b>{igstAmount.toFixed(2)}</b></td>
                             </tr>
                             <tr>
                                 <td colSpan="3" style={{ border: 'none', padding: '15px 5px 5px' }}>
@@ -531,247 +283,300 @@
             );
         };
 
-        function App() {
-            const [activeTab, setActiveTab] = useState('single'); // 'single' or 'bulk'
+        // ===============================================
+        // SALARY SLIP COMPONENT
+        // ===============================================
+        const SalarySlipPreview = ({ data, forwardRef, hidden, monthYear }) => {
+            if (!data) return null;
             
-            // Single Invoice State
+            const words = numberToWords(data.salaryInHand);
+
+            return (
+                <div className="print-preview salary-preview" ref={forwardRef} style={hidden ? { position: 'absolute', top: '-9999px', left: '-9999px', minHeight: '148.5mm' } : { minHeight: '148.5mm' }}>
+                    <div className="invoice-header-img" style={{ marginBottom: '10px' }}>
+                        <img src="./logo.jpeg" alt="BL Group Letterhead" style={{ width: '100%', height: 'auto', display: 'block' }} crossOrigin="anonymous" />
+                    </div>
+
+                    <table className="salary-table">
+                        <tbody>
+                            <tr className="header-row">
+                                <td colSpan="4">PAY SLIP FOR THE MONTH OF {monthYear}</td>
+                            </tr>
+                            <tr>
+                                <td style={{ width: '25%' }}><b>Employee Name</b></td>
+                                <td style={{ width: '25%' }}>{data.empName}</td>
+                                <td style={{ width: '25%' }}><b>Total Days</b></td>
+                                <td style={{ width: '25%' }}>{data.totalDays}</td>
+                            </tr>
+                            
+                            <tr className="sub-header">
+                                <td colSpan="2" style={{ textAlign: 'center', background: '#f8fafc' }}>EARNINGS</td>
+                                <td colSpan="2" style={{ textAlign: 'center', background: '#f8fafc' }}>DEDUCTIONS</td>
+                            </tr>
+                            
+                            {/* Salary Details Row */}
+                            <tr>
+                                <td>Basic Salary</td>
+                                <td className="amount-col">{data.basicSalary}</td>
+                                <td>PF</td>
+                                <td className="amount-col">{data.pf}</td>
+                            </tr>
+                            <tr>
+                                <td>Earned Salary</td>
+                                <td className="amount-col">{data.netSalary}</td>
+                                <td>ESIC</td>
+                                <td className="amount-col">{data.esic}</td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td>PT</td>
+                                <td className="amount-col">{data.pt}</td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td>Advance</td>
+                                <td className="amount-col">{data.advance}</td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td>Canteen</td>
+                                <td className="amount-col">{data.canteen}</td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td>Ration</td>
+                                <td className="amount-col">{data.ration}</td>
+                            </tr>
+
+                            {/* Totals */}
+                            <tr className="sub-header" style={{ background: '#f1f5f9' }}>
+                                <td>TOTAL EARNINGS</td>
+                                <td className="amount-col">{data.netSalary}</td>
+                                <td>TOTAL DEDUCTIONS</td>
+                                <td className="amount-col">{data.totalDeduction}</td>
+                            </tr>
+                            
+                            {/* Net Payable */}
+                            <tr>
+                                <td colSpan="3" style={{ textAlign: 'right', fontSize: '15px' }}><b>NET SALARY PAYABLE:</b></td>
+                                <td className="amount-col" style={{ fontSize: '15px' }}><b>₹ {data.salaryInHand}</b></td>
+                            </tr>
+                            <tr>
+                                <td colSpan="4"><b>Amount in words:</b> {words} rupees only.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '60px', padding: '0 20px', fontWeight: 'bold' }}>
+                        <div>Employee Signature</div>
+                        <div>Authorised Signatory</div>
+                    </div>
+                </div>
+            );
+        };
+
+
+        // ===============================================
+        // MAIN APP
+        // ===============================================
+        function App() {
+            const [activeTab, setActiveTab] = useState('single'); // 'single', 'bulk', 'salary'
+            
+            // Shared State
             const today = new Date();
             const formattedDate = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}-${today.getFullYear()}`;
             
-            const [data, setData] = useState({
-                billNo: 'BL/F/053/26-27',
-                date: formattedDate,
-                clientName: 'KEC ASIAN CABLES LIMITED',
-                clientAddress: 'PLOT NO 803, SAMALAYA - SAVALY ROAD, VILLAGE GODAMPURA, TALUKA-SAVLI, VADODARA 391520 GUJARAT',
-                clientGst: '24AALCK3195Q1ZS',
-                sacCode: '997313 Leasing or rental services concerning Constructions Machinery and Equipment with or without operator.',
-                paymentTerm: '10 DAYS',
-                department: 'STORE',
-                igstRate: 18,
-                items: [{ id: 1, particulars: 'SUPPLY OF 5 TON CAPACITY DIESEL FORKLIFT NO GJ - 15 - BB 9683 ON HIRING BASIS\n\nTHE WORK DONE FROM 01/08/2026 TO 31/08/2026 AS PER LOG SHEET NO. 705 & 706', workingDays: 'fix', hours: '12 HRS', rate: 57500 }]
-            });
-
-            // Bulk Invoice State
-            const [bulkInvoices, setBulkInvoices] = useState([]);
             const [isGenerating, setIsGenerating] = useState(false);
             const [generationProgress, setGenerationProgress] = useState(0);
+            const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+            // ------------- INVOICE STATE -------------
+            const [data, setData] = useState({
+                billNo: 'BL/F/053/26-27', date: formattedDate, clientName: 'KEC ASIAN CABLES LIMITED',
+                clientAddress: 'PLOT NO 803, SAMALAYA - SAVALY ROAD, VILLAGE GODAMPURA, TALUKA-SAVLI, VADODARA 391520 GUJARAT',
+                clientGst: '24AALCK3195Q1ZS', sacCode: '997313 Leasing or rental services concerning Constructions Machinery and Equipment with or without operator.',
+                paymentTerm: '10 DAYS', department: 'STORE', igstRate: 18,
+                items: [{ id: 1, particulars: 'SUPPLY OF 5 TON CAPACITY DIESEL FORKLIFT NO GJ - 15 - BB 9683 ON HIRING BASIS\n\nTHE WORK DONE FROM 01/08/2026 TO 31/08/2026 AS PER LOG SHEET NO. 705 & 706', workingDays: 'fix', hours: '12 HRS', rate: 57500 }]
+            });
+            const [bulkInvoices, setBulkInvoices] = useState([]);
             
             const previewRef = useRef(null);
             const hiddenPreviewRef = useRef(null);
             const [hiddenPreviewData, setHiddenPreviewData] = useState(data);
 
+            // ------------- SALARY SLIP STATE -------------
+            const [salaryMonth, setSalaryMonth] = useState('JULY 2026');
+            const [parsedSalaries, setParsedSalaries] = useState([]);
+            const salaryHiddenPreviewRef = useRef(null);
+            const [hiddenSalaryData, setHiddenSalaryData] = useState(null);
+
+
+            // ------------- INVOICE HANDLERS -------------
             const handleDownloadSinglePdf = async () => {
                 if (!previewRef.current) return;
                 setIsGenerating(true);
                 try {
                     const element = previewRef.current;
-                    const opt = {
-                        margin: 0,
-                        filename: `Invoice_${data.billNo.replace(/\//g, '_')}.pdf`,
-                        image: { type: 'jpeg', quality: 1 },
-                        html2canvas: { scale: 2, useCORS: true },
-                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                    };
+                    const opt = { margin: 0, filename: `Invoice_${data.billNo.replace(/\//g, '_')}.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
                     await html2pdf().set(opt).from(element).save();
-                } catch (error) {
-                    console.error(error);
-                    alert("Failed to generate PDF.");
-                } finally {
-                    setIsGenerating(false);
-                }
-            };
-
-            const downloadTemplate = () => {
-                const ws_data = [
-                    ["Bill_No", "Date", "Client_Name", "Client_Address", "Client_GST", "SAC_Code", "Payment_Term", "Department", "IGST_Rate", "Particulars", "Working_Days", "Hours", "Rate"],
-                    ["BL/F/001/26-27", "31-08-2026", "ACME CORP", "123 Street, City", "24AABBCC11", "997313", "10 DAYS", "STORE", "18", "Forklift 5 Ton", "fix", "12 HRS", "50000"],
-                    ["BL/F/001/26-27", "31-08-2026", "ACME CORP", "123 Street, City", "24AABBCC11", "997313", "10 DAYS", "STORE", "18", "Hydra Crane Service", "2", "8 HRS", "12000"],
-                    ["BL/F/002/26-27", "01-09-2026", "XYZ LTD", "456 Road, Delhi", "07XYZCC22", "997313", "15 DAYS", "PLANT", "18", "Hydra Machine", "fix", "24 HRS", "80000"]
-                ];
-                const ws = XLSX.utils.aoa_to_sheet(ws_data);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Template");
-                XLSX.writeFile(wb, "Invoice_Bulk_Template.xlsx");
+                } catch (error) { console.error(error); alert("Failed to generate PDF."); } finally { setIsGenerating(false); }
             };
 
             const handleFileUpload = (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
-
                 const reader = new FileReader();
                 reader.onload = (evt) => {
-                    const data = new Uint8Array(evt.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const sheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[sheetName];
+                    const workbook = XLSX.read(new Uint8Array(evt.target.result), { type: 'array' });
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                     const json = XLSX.utils.sheet_to_json(worksheet);
-
-                    // Group by Bill No
                     const grouped = {};
                     json.forEach(row => {
                         const billNo = row.Bill_No;
                         if (!billNo) return;
-                        
                         if (!grouped[billNo]) {
-                            grouped[billNo] = {
-                                billNo: billNo,
-                                date: row.Date || '',
-                                clientName: row.Client_Name || '',
-                                clientAddress: row.Client_Address || '',
-                                clientGst: row.Client_GST || '',
-                                sacCode: row.SAC_Code || '',
-                                paymentTerm: row.Payment_Term || '',
-                                department: row.Department || '',
-                                igstRate: row.IGST_Rate || 18,
-                                items: []
-                            };
+                            grouped[billNo] = { billNo, date: row.Date||'', clientName: row.Client_Name||'', clientAddress: row.Client_Address||'', clientGst: row.Client_GST||'', sacCode: row.SAC_Code||'', paymentTerm: row.Payment_Term||'', department: row.Department||'', igstRate: row.IGST_Rate||18, items: [] };
                         }
-                        
-                        grouped[billNo].items.push({
-                            id: Math.random(),
-                            particulars: row.Particulars || '',
-                            workingDays: row.Working_Days || '',
-                            hours: row.Hours || '',
-                            rate: row.Rate || 0
-                        });
+                        grouped[billNo].items.push({ id: Math.random(), particulars: row.Particulars||'', workingDays: row.Working_Days||'', hours: row.Hours||'', rate: row.Rate||0 });
                     });
-
                     setBulkInvoices(Object.values(grouped));
                 };
                 reader.readAsArrayBuffer(file);
             };
 
-            const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-
             const handleBulkGenerate = async () => {
                 if (bulkInvoices.length === 0) return;
-                setIsGenerating(true);
-                setGenerationProgress(0);
-                
+                setIsGenerating(true); setGenerationProgress(0);
                 try {
                     const zip = new JSZip();
-                    
                     for (let i = 0; i < bulkInvoices.length; i++) {
-                        const invData = bulkInvoices[i];
-                        
-                        // Set the hidden preview data to render this specific invoice
-                        setHiddenPreviewData(invData);
-                        
-                        // Wait a tick for React to re-render the hidden component
+                        setHiddenPreviewData(bulkInvoices[i]);
                         await sleep(100); 
-                        
-                        const element = hiddenPreviewRef.current;
-                        const opt = {
-                            margin: 0,
-                            filename: `temp.pdf`,
-                            image: { type: 'jpeg', quality: 1 },
-                            html2canvas: { scale: 2, useCORS: true },
-                            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                        };
-                        
-                        // Generate PDF as blob instead of saving directly
-                        const pdfWorker = html2pdf().set(opt).from(element);
-                        const pdfBlob = await pdfWorker.output('blob');
-                        
-                        // Add to zip
-                        zip.file(`Invoice_${invData.billNo.replace(/\//g, '_')}.pdf`, pdfBlob);
-                        
+                        const opt = { margin: 0, filename: `temp.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+                        const pdfBlob = await html2pdf().set(opt).from(hiddenPreviewRef.current).output('blob');
+                        zip.file(`Invoice_${bulkInvoices[i].billNo.replace(/\//g, '_')}.pdf`, pdfBlob);
                         setGenerationProgress(i + 1);
                     }
-                    
-                    // Generate Zip and download
                     const zipBlob = await zip.generateAsync({ type: "blob" });
                     const link = document.createElement('a');
                     link.href = URL.createObjectURL(zipBlob);
                     link.download = `Bulk_Invoices_${formattedDate}.zip`;
                     link.click();
-                    
-                } catch (error) {
-                    console.error(error);
-                    alert("An error occurred during bulk generation.");
-                } finally {
-                    setIsGenerating(false);
-                    setGenerationProgress(0);
-                }
+                } catch (error) { console.error(error); alert("An error occurred during bulk generation."); } finally { setIsGenerating(false); setGenerationProgress(0); }
             };
+
+            // ------------- SALARY HANDLERS -------------
+            const handleSalaryFileUpload = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    const workbook = XLSX.read(new Uint8Array(evt.target.result), { type: 'array' });
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    // Read as 2D array to bypass dynamic column names
+                    const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    const parsed = [];
+                    // Find where the actual data starts (usually row 2, index 2)
+                    // Rows array looks like:
+                    // 0: ["BL Group", ...] 
+                    // 1: ["SR NO.", "EMPLOYEE NAME", "TOTAL DAYS", "BASIC SALARY", ...]
+                    // 2: [1, "PRINCE VERMA", ...]
+                    
+                    for (let i = 2; i < rows.length; i++) {
+                        const r = rows[i];
+                        if (!r || r.length < 5 || !r[1]) continue; // Skip empty rows or summary rows
+                        
+                        // Treat Net Salary as Earned Gross based on the sheet math
+                        parsed.push({
+                            id: r[0] || i,
+                            empName: r[1] || '',
+                            totalDays: r[2] || 0,
+                            basicSalary: r[3] || 0,
+                            netSalary: r[4] || 0, // This is actually Earned Salary
+                            pf: r[5] || 0,
+                            esic: r[6] || 0,
+                            pt: r[7] || 0,
+                            advance: r[8] || 0,
+                            canteen: r[9] || 0,
+                            ration: r[10] || 0,
+                            totalDeduction: r[11] || 0,
+                            salaryInHand: r[12] || 0
+                        });
+                    }
+                    setParsedSalaries(parsed);
+                };
+                reader.readAsArrayBuffer(file);
+            };
+
+            const handleSalaryBulkGenerate = async () => {
+                if (parsedSalaries.length === 0) return;
+                setIsGenerating(true); setGenerationProgress(0);
+                try {
+                    const zip = new JSZip();
+                    for (let i = 0; i < parsedSalaries.length; i++) {
+                        setHiddenSalaryData(parsedSalaries[i]);
+                        await sleep(100); 
+                        const opt = { margin: 0, filename: `temp.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+                        const pdfBlob = await html2pdf().set(opt).from(salaryHiddenPreviewRef.current).output('blob');
+                        zip.file(`Payslip_${parsedSalaries[i].empName.replace(/[^a-z0-9]/gi, '_')}.pdf`, pdfBlob);
+                        setGenerationProgress(i + 1);
+                    }
+                    const zipBlob = await zip.generateAsync({ type: "blob" });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(zipBlob);
+                    link.download = `Salary_Slips_${salaryMonth.replace(/ /g, '_')}.zip`;
+                    link.click();
+                } catch (error) { console.error(error); alert("An error occurred generating salary slips."); } finally { setIsGenerating(false); setGenerationProgress(0); }
+            };
+
 
             return (
                 <div className="app-container">
                     <header className="header">
-                        <h1>BL Group Invoice Generator</h1>
+                        <h1>BL Group Automation Hub</h1>
                         <div className="nav-tabs">
                             <button className={activeTab === 'single' ? 'active' : ''} onClick={() => setActiveTab('single')}>Single Invoice</button>
-                            <button className={activeTab === 'bulk' ? 'active' : ''} onClick={() => setActiveTab('bulk')}>Bulk Excel Upload</button>
+                            <button className={activeTab === 'bulk' ? 'active' : ''} onClick={() => setActiveTab('bulk')}>Bulk Invoices</button>
+                            <button className={activeTab === 'salary' ? 'active-salary' : ''} onClick={() => setActiveTab('salary')}>💸 Salary Slips Generator</button>
                         </div>
                     </header>
                     
-                    {/* HIDDEN INVOICE FOR BULK RENDER */}
-                    {activeTab === 'bulk' && (
-                        <InvoicePreview data={hiddenPreviewData} forwardRef={hiddenPreviewRef} hidden={true} />
-                    )}
+                    {/* HIDDEN PREVIEWS FOR BULK RENDER */}
+                    {activeTab === 'bulk' && <InvoicePreview data={hiddenPreviewData} forwardRef={hiddenPreviewRef} hidden={true} />}
+                    {activeTab === 'salary' && <SalarySlipPreview data={hiddenSalaryData} monthYear={salaryMonth} forwardRef={salaryHiddenPreviewRef} hidden={true} />}
 
-                    {activeTab === 'single' ? (
+                    {activeTab === 'single' && (
                         <main className="main-content">
                             <div className="card">
                                 <h2 className="card-title">Invoice Details</h2>
                                 <div className="form-row">
-                                    <div>
-                                        <label>Bill No.</label>
-                                        <input value={data.billNo} onChange={e => setData({...data, billNo: e.target.value})} />
-                                    </div>
-                                    <div>
-                                        <label>Date</label>
-                                        <input value={data.date} onChange={e => setData({...data, date: e.target.value})} />
-                                    </div>
+                                    <div><label>Bill No.</label><input value={data.billNo} onChange={e => setData({...data, billNo: e.target.value})} /></div>
+                                    <div><label>Date</label><input value={data.date} onChange={e => setData({...data, date: e.target.value})} /></div>
                                 </div>
                                 <div className="section-title">Client Details</div>
-                                <div className="form-group">
-                                    <label>M/s (Client Name)</label>
-                                    <input value={data.clientName} onChange={e => setData({...data, clientName: e.target.value})} />
-                                </div>
-                                <div className="form-group" style={{ marginTop: '1rem' }}>
-                                    <label>Client Address</label>
-                                    <textarea value={data.clientAddress} onChange={e => setData({...data, clientAddress: e.target.value})} />
-                                </div>
+                                <div className="form-group"><label>M/s (Client Name)</label><input value={data.clientName} onChange={e => setData({...data, clientName: e.target.value})} /></div>
+                                <div className="form-group" style={{ marginTop: '1rem' }}><label>Client Address</label><textarea value={data.clientAddress} onChange={e => setData({...data, clientAddress: e.target.value})} /></div>
                                 <div className="form-row" style={{ marginTop: '1rem' }}>
-                                    <div>
-                                        <label>Client GST No.</label>
-                                        <input value={data.clientGst} onChange={e => setData({...data, clientGst: e.target.value})} />
-                                    </div>
-                                    <div>
-                                        <label>Payment Term</label>
-                                        <input value={data.paymentTerm} onChange={e => setData({...data, paymentTerm: e.target.value})} />
-                                    </div>
+                                    <div><label>Client GST No.</label><input value={data.clientGst} onChange={e => setData({...data, clientGst: e.target.value})} /></div>
+                                    <div><label>Payment Term</label><input value={data.paymentTerm} onChange={e => setData({...data, paymentTerm: e.target.value})} /></div>
                                 </div>
-                                <div className="form-group" style={{ marginTop: '1rem' }}>
-                                    <label>GST SAC CODE</label>
-                                    <input value={data.sacCode} onChange={e => setData({...data, sacCode: e.target.value})} />
-                                </div>
+                                <div className="form-group" style={{ marginTop: '1rem' }}><label>GST SAC CODE</label><input value={data.sacCode} onChange={e => setData({...data, sacCode: e.target.value})} /></div>
 
                                 <div className="section-title">Invoice Items</div>
-                                <div className="form-group">
-                                    <label>Department / Section Header</label>
-                                    <input value={data.department} onChange={e => setData({...data, department: e.target.value})} />
-                                </div>
-
+                                <div className="form-group"><label>Department / Section Header</label><input value={data.department} onChange={e => setData({...data, department: e.target.value})} /></div>
                                 <div style={{ marginTop: '1rem' }}>
                                     <label>Line Items</label>
                                     {data.items.map(item => (
                                         <div className="item-row" key={item.id}>
-                                            <textarea 
-                                                placeholder="Particulars (Description)" 
-                                                value={item.particulars} 
-                                                onChange={e => setData({...data, items: data.items.map(i => i.id === item.id ? {...i, particulars: e.target.value} : i)})} 
-                                            />
-                                            <div>
-                                                <input placeholder="Days" value={item.workingDays} onChange={e => setData({...data, items: data.items.map(i => i.id === item.id ? {...i, workingDays: e.target.value} : i)})} />
-                                            </div>
-                                            <div>
-                                                <input placeholder="Hrs" value={item.hours} onChange={e => setData({...data, items: data.items.map(i => i.id === item.id ? {...i, hours: e.target.value} : i)})} />
-                                            </div>
-                                            <div>
-                                                <input type="number" placeholder="Rate" value={item.rate} onChange={e => setData({...data, items: data.items.map(i => i.id === item.id ? {...i, rate: e.target.value} : i)})} />
-                                            </div>
+                                            <textarea placeholder="Particulars" value={item.particulars} onChange={e => setData({...data, items: data.items.map(i => i.id === item.id ? {...i, particulars: e.target.value} : i)})} />
+                                            <div><input placeholder="Days" value={item.workingDays} onChange={e => setData({...data, items: data.items.map(i => i.id === item.id ? {...i, workingDays: e.target.value} : i)})} /></div>
+                                            <div><input placeholder="Hrs" value={item.hours} onChange={e => setData({...data, items: data.items.map(i => i.id === item.id ? {...i, hours: e.target.value} : i)})} /></div>
+                                            <div><input type="number" placeholder="Rate" value={item.rate} onChange={e => setData({...data, items: data.items.map(i => i.id === item.id ? {...i, rate: e.target.value} : i)})} /></div>
                                             <button className="btn-icon" onClick={() => setData({...data, items: data.items.filter(i => i.id !== item.id)})}>×</button>
                                         </div>
                                     ))}
@@ -780,83 +585,97 @@
                                 
                                 <div className="section-title">Tax Options</div>
                                 <div className="form-row">
-                                    <div>
-                                        <label>IGST Rate (%)</label>
-                                        <input type="number" value={data.igstRate} onChange={e => setData({...data, igstRate: e.target.value})} />
-                                    </div>
-                                    <div>
-                                        <label>Subtotal (Auto)</label>
-                                        <input value={data.items.reduce((s, i) => s + Number(i.rate||0), 0)} disabled style={{ backgroundColor: '#1e293b', cursor: 'not-allowed' }} />
-                                    </div>
+                                    <div><label>IGST Rate (%)</label><input type="number" value={data.igstRate} onChange={e => setData({...data, igstRate: e.target.value})} /></div>
+                                    <div><label>Subtotal (Auto)</label><input value={data.items.reduce((s, i) => s + Number(i.rate||0), 0)} disabled style={{ backgroundColor: '#1e293b', cursor: 'not-allowed' }} /></div>
                                 </div>
-
-                                <button className="btn" style={{ marginTop: '2rem' }} onClick={handleDownloadSinglePdf} disabled={isGenerating}>
-                                    {isGenerating ? <div className="loader"></div> : 'Download PDF Invoice'}
-                                </button>
+                                <button className="btn" style={{ marginTop: '2rem' }} onClick={handleDownloadSinglePdf} disabled={isGenerating}>{isGenerating ? <div className="loader"></div> : 'Download PDF Invoice'}</button>
                             </div>
-
                             <div className="preview-pane-container">
                                 <InvoicePreview data={data} forwardRef={previewRef} />
                             </div>
                         </main>
-                    ) : (
+                    )}
+
+                    {activeTab === 'bulk' && (
                         <main>
                             <div className="card" style={{ maxWidth: '800px', margin: '0 auto' }}>
-                                <h2 className="card-title">Bulk Excel Generation</h2>
+                                <h2 className="card-title">Bulk Excel Invoice Generation</h2>
                                 <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', lineHeight: '1.5' }}>
-                                    Upload an Excel file to generate multiple invoices at once. If an invoice has multiple line items, simply repeat the <code>Bill_No</code> and Client details on the next row with the new item details.
+                                    Upload an Excel file to generate multiple invoices at once.
                                 </p>
-                                
                                 <div className="form-row" style={{ alignItems: 'center', marginBottom: '2rem' }}>
-                                    <button className="btn btn-outline" onClick={downloadTemplate} style={{ flex: 1, margin: 0 }}>
-                                        📥 Download Excel Template
-                                    </button>
-                                    <div style={{ flex: 2 }}>
-                                        <input type="file" accept=".xlsx, .xls, .csv" onChange={handleFileUpload} style={{ padding: '0.6rem' }} />
-                                    </div>
+                                    <button className="btn btn-outline" onClick={() => alert("Download logic is in walkthrough, simply create a sheet with matching headers.")} style={{ flex: 1, margin: 0 }}>📥 Download Template</button>
+                                    <div style={{ flex: 2 }}><input type="file" accept=".xlsx, .xls, .csv" onChange={handleFileUpload} style={{ padding: '0.6rem' }} /></div>
                                 </div>
 
                                 {bulkInvoices.length > 0 && (
                                     <div>
                                         <div className="section-title">Parsed Invoices ({bulkInvoices.length})</div>
                                         <table className="bulk-list">
-                                            <thead>
-                                                <tr>
-                                                    <th>Bill No.</th>
-                                                    <th>Client</th>
-                                                    <th>Items</th>
-                                                    <th>Total Amt</th>
-                                                </tr>
-                                            </thead>
+                                            <thead><tr><th>Bill No.</th><th>Client</th><th>Items</th><th>Total Amt</th></tr></thead>
                                             <tbody>
-                                                {bulkInvoices.map((inv, idx) => {
-                                                    const total = inv.items.reduce((s, i) => s + Number(i.rate||0), 0) * (1 + (inv.igstRate/100));
-                                                    return (
-                                                        <tr key={idx}>
-                                                            <td>{inv.billNo}</td>
-                                                            <td>{inv.clientName}</td>
-                                                            <td>{inv.items.length} items</td>
-                                                            <td>₹{Math.round(total)}</td>
-                                                        </tr>
-                                                    )
-                                                })}
+                                                {bulkInvoices.map((inv, idx) => (
+                                                    <tr key={idx}><td>{inv.billNo}</td><td>{inv.clientName}</td><td>{inv.items.length} items</td><td>₹{Math.round(inv.items.reduce((s, i) => s + Number(i.rate||0), 0) * (1 + (inv.igstRate/100)))}</td></tr>
+                                                ))}
                                             </tbody>
                                         </table>
+                                        <button className="btn" style={{ marginTop: '2rem', padding: '1rem' }} onClick={handleBulkGenerate} disabled={isGenerating}>
+                                            {isGenerating ? <><div className="loader"></div> Generating PDF {generationProgress} of {bulkInvoices.length}...</> : `🚀 Generate & Download ZIP (${bulkInvoices.length} Invoices)`}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </main>
+                    )}
 
-                                        <button 
-                                            className="btn" 
-                                            style={{ marginTop: '2rem', padding: '1rem' }} 
-                                            onClick={handleBulkGenerate}
-                                            disabled={isGenerating}
-                                        >
-                                            {isGenerating ? (
-                                                <>
-                                                    <div className="loader"></div> 
-                                                    Generating PDF {generationProgress} of {bulkInvoices.length}...
-                                                </>
-                                            ) : (
-                                                `🚀 Generate & Download ZIP (${bulkInvoices.length} Invoices)`
-                                            )}
+                    {activeTab === 'salary' && (
+                        <main>
+                            <div className="card" style={{ maxWidth: '900px', margin: '0 auto' }}>
+                                <h2 className="card-title" style={{ color: var('--success-color') }}>💸 Bulk Salary Slip Generator</h2>
+                                <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', lineHeight: '1.5' }}>
+                                    Upload your standard BL Group Salary Sheet (e.g., <code>JULY 26 SALARY SHEET.xls</code>). We will automatically extract Employee names, Earnings, Deductions, and Net Pay to generate professional PDF Salary Slips.
+                                </p>
+                                
+                                <div className="form-row" style={{ alignItems: 'center', marginBottom: '2rem' }}>
+                                    <div style={{ flex: 1 }}>
+                                        <label>Month & Year for Payslips</label>
+                                        <input value={salaryMonth} onChange={e => setSalaryMonth(e.target.value)} placeholder="e.g. JULY 2026" />
+                                    </div>
+                                    <div style={{ flex: 2 }}>
+                                        <label>Upload Salary Excel (.xls or .xlsx)</label>
+                                        <input type="file" accept=".xlsx, .xls, .csv" onChange={handleSalaryFileUpload} style={{ padding: '0.6rem' }} />
+                                    </div>
+                                </div>
+
+                                {parsedSalaries.length > 0 && (
+                                    <div>
+                                        <div className="section-title">Parsed Employees ({parsedSalaries.length})</div>
+                                        <div style={{ maxHeight: '400px', overflowY: 'auto', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                                            <table className="bulk-list" style={{ marginTop: 0 }}>
+                                                <thead style={{ position: 'sticky', top: 0 }}>
+                                                    <tr>
+                                                        <th>Emp Name</th>
+                                                        <th>Days</th>
+                                                        <th>Earned Salary</th>
+                                                        <th>Deductions</th>
+                                                        <th>Salary in Hand</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {parsedSalaries.map((emp, idx) => (
+                                                        <tr key={idx}>
+                                                            <td style={{ fontWeight: 500 }}>{emp.empName}</td>
+                                                            <td>{emp.totalDays}</td>
+                                                            <td style={{ color: '#10b981' }}>+ ₹{emp.netSalary}</td>
+                                                            <td style={{ color: '#ef4444' }}>- ₹{emp.totalDeduction}</td>
+                                                            <td style={{ fontWeight: 'bold' }}>₹{emp.salaryInHand}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <button className="btn btn-success" style={{ marginTop: '2rem', padding: '1rem' }} onClick={handleSalaryBulkGenerate} disabled={isGenerating}>
+                                            {isGenerating ? <><div className="loader"></div> Generating Payslip {generationProgress} of {parsedSalaries.length}...</> : `💸 Generate & Download ZIP (${parsedSalaries.length} Payslips)`}
                                         </button>
                                     </div>
                                 )}
