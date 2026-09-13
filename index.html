@@ -426,6 +426,19 @@
                 } catch (error) { console.error(error); alert("Failed to generate PDF."); } finally { setIsGenerating(false); }
             };
 
+            const downloadTemplate = () => {
+                const ws_data = [
+                    ["Bill_No", "Date", "Client_Name", "Client_Address", "Client_GST", "SAC_Code", "Payment_Term", "Department", "IGST_Rate", "Particulars", "Working_Days", "Hours", "Rate"],
+                    ["BL/F/001/26-27", "31-08-2026", "ACME CORP", "123 Street, City", "24AABBCC11", "997313", "10 DAYS", "STORE", "18", "Forklift 5 Ton", "fix", "12 HRS", "50000"],
+                    ["BL/F/001/26-27", "31-08-2026", "ACME CORP", "123 Street, City", "24AABBCC11", "997313", "10 DAYS", "STORE", "18", "Hydra Crane Service", "2", "8 HRS", "12000"],
+                    ["BL/F/002/26-27", "01-09-2026", "XYZ LTD", "456 Road, Delhi", "07XYZCC22", "997313", "15 DAYS", "PLANT", "18", "Hydra Machine", "fix", "24 HRS", "80000"]
+                ];
+                const ws = XLSX.utils.aoa_to_sheet(ws_data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Template");
+                XLSX.writeFile(wb, "Invoice_Bulk_Template.xlsx");
+            };
+
             const handleFileUpload = (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
@@ -619,7 +632,7 @@
                                     Upload an Excel file to generate multiple invoices at once.
                                 </p>
                                 <div className="form-row" style={{ alignItems: 'center', marginBottom: '2rem' }}>
-                                    <button className="btn btn-outline" onClick={() => alert("Download logic is in walkthrough, simply create a sheet with matching headers.")} style={{ flex: 1, margin: 0 }}>📥 Download Template</button>
+                                    <button className="btn btn-outline" onClick={downloadTemplate} style={{ flex: 1, margin: 0 }}>📥 Download Template</button>
                                     <div style={{ flex: 2 }}><input type="file" accept=".xlsx, .xls, .csv" onChange={handleFileUpload} style={{ padding: '0.6rem' }} /></div>
                                 </div>
 
